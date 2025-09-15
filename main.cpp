@@ -8,6 +8,7 @@ using namespace std;
 // 4. Juan Felix Arias Ramos
 // 5. Oscar Toledo
 // 6. Richard Villanueva Retamozo
+//....
 
 int main(){
     cout << "Hello EDA - MCC639G" <<endl;
