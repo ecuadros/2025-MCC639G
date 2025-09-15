@@ -22,5 +22,8 @@ int main(){
     int t = prueba(5);
     cout << "Respuesta:" << t << endl;
 
+    int r = producto(5,2);
+    cout << "Respuesta:" << r << endl;
+
     return 0;
 }
