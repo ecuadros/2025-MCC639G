@@ -5,7 +5,7 @@ using namespace std;
 
 // 1. Ernesto Cuadros-Vargas
 // 2. Luis Antonio Selis Vasquez
-// 3. Alex Segura
+// 3. Alex Segura Nuñez
 // 4. Juan Felix Arias Ramos
 // 5. Oscar Toledo Guerrero
 
@@ -22,6 +22,10 @@ int main(){
     // NUEVO: usando la función suma, Luis Selis
     int resultado = suma(3, 7);
     cout << "Suma de 3 + 7 = " << resultado << endl;
+
+    // NUEVO: usando la función resta, Alex Segura
+    int resultado_resta = resta(10, 4);
+    cout << "Resta de 10 - 4 = " << resultado_resta << endl;
 
     return 0;
 }
