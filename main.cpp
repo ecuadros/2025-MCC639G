@@ -23,6 +23,5 @@ int main(){
     // NUEVO: usando la función suma, Luis Selis
     int resultado = suma(3, 7);
     cout << "Suma de 3 + 7 = " << resultado << endl;
-
     return 0;
 }
