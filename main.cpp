@@ -9,6 +9,7 @@ using namespace std;
 // 4. Juan Felix Arias Ramos
 // 5. Oscar Toledo Guerrero
 // 7. Jose Bazan
+// 10. Patrick Fuentes Carpio
 
 // Forma 1 de Compilar: 
 // g++ -std=c++17 -Wall -g -pthread -o main main.cpp test.cpp
@@ -17,7 +18,7 @@ using namespace std;
 
 int main(){
     cout << "Hello EDA - MCC639G" <<endl;
-    int t = prueba(5);
+    int t = addOne(5);
     cout << "Respuesta:" << t << endl;
 
     // NUEVO: usando la función suma, Luis Selis
