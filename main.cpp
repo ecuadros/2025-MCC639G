@@ -8,7 +8,7 @@ using namespace std;
 // 3. Alex Segura
 // 4. Juan Felix Arias Ramos
 // 5. Oscar Toledo Guerrero
-
+// 9. David Quispe Calloapaza
 // Forma 1 de Compilar: 
 // g++ -std=c++17 -Wall -g -pthread -o main main.cpp test.cpp
 // Forma #2 de Compilar (requiere el archivo Makefile)
