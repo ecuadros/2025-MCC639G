@@ -8,3 +8,7 @@ int prueba(int n){
 int suma(int a, int b){
     return a + b;
 }
+// NUEVO:función resta, Joseph Alcazar
+int resta(int a, int b) {
+        return a-b;
+}

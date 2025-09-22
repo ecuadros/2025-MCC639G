@@ -10,6 +10,7 @@ using namespace std;
 // 5. Oscar Toledo Guerrero
 // 6. Aldo Arriola
 // 7. Jose Bazan
+// 8. Joseph Alcazar
 
 // Forma 1 de Compilar: 
 // g++ -std=c++17 -Wall -g -pthread -o main main.cpp test.cpp
@@ -25,5 +26,8 @@ int main(){
     int resultado = suma(3, 7);
     cout << "Suma de 3 + 7 = " << resultado << endl;
 
+   // NUEVO: usando la función resta, Joseph Alcazar
+    int resultado = resta(8,2);
+    cout << "Resta de 8 + 2 = " << resultado << endl;
     return 0;
 }
