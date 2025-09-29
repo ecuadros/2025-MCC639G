@@ -5,17 +5,17 @@
 using Ref = int;
 
 template <typename T>
-class LinkedlistNode {
+class LinkedListNode {
 private:
     using value_type = T;
-    using Node       = LinkedlistNode<T>;
+    using Node       = LinkedListNode<T>;
 
     value_type m_data;
     Ref        m_ref;
     Node*      m_pNext = nullptr;
 
 public:
-    LinkedlistNode(const value_type& elem, Ref ref, Node* pNext = nullptr)
+    LinkedListNode(const value_type& elem, Ref ref, Node* pNext = nullptr)
         : m_data(elem), m_ref(ref), m_pNext(pNext) {}
 
     const value_type& GetData() const { return m_data; }

@@ -2,14 +2,14 @@
 #define __LINKEDLIST_H__
 
 #include <iostream>
-#include "LinkedlistNode.h"
-#include "ForwardLinkedlistIterator.h"
+#include "LinkedListNode.h"
+#include "ForwardLinkedListIterator.h"
 
 template <typename T>
 class LinkedList {
 private:
     using value_type = T;
-    using Node       = LinkedlistNode<value_type>;
+    using Node       = LinkedListNode<value_type>;
 
     Node* m_pRoot = nullptr;
 
@@ -17,7 +17,7 @@ public:
     // Default constructor
     LinkedList() = default;
 
-    using iterator = ForwardLinkedlistIterator<T>;
+    using iterator = ForwardLinkedListIterator<T>;
 
     iterator begin() { return iterator(m_pRoot); }
     iterator end()   { return iterator(nullptr); }

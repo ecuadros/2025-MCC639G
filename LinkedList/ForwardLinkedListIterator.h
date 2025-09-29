@@ -1,23 +1,23 @@
 #ifndef __FORWARD_LINKEDLIST_ITERATOR_H__
 #define __FORWARD_LINKEDLIST_ITERATOR_H__
 
-#include "LinkedlistNode.h"
+#include "LinkedListNode.h"
 
 template <typename T>
-class ForwardLinkedlistIterator {
+class ForwardLinkedListIterator {
 private:
     using value_type = T;
-    using Node       = LinkedlistNode<T>;
-    using iterator   = ForwardLinkedlistIterator<T>;
+    using Node       = LinkedListNode<T>;
+    using iterator   = ForwardLinkedListIterator<T>;
 
     Node* m_pNode = nullptr;
 
 public:
     // Constructors
-    explicit ForwardLinkedlistIterator(Node* pNode = nullptr)
+    explicit ForwardLinkedListIterator(Node* pNode = nullptr)
         : m_pNode(pNode) {}
 
-    ForwardLinkedlistIterator(const iterator& other)
+    ForwardLinkedListIterator(const iterator& other)
         : m_pNode(other.m_pNode) {}
 
     // Equality
