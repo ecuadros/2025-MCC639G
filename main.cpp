@@ -1,24 +1,25 @@
 #include <iostream>
-#include "test.h"
+#include "Linkedlist.h"
 
 using namespace std;
 
-// 1. Ernesto Cuadros-Vargas
-// 2. Luis Antonio Selis Vasquez
-// 3. Alex Segura
-// 4. Juan Felix Arias Ramos
-// 5. Oscar Toledo Guerrero
-// 10. Patrick Fuentes Carpio
-
-// Forma 1 de Compilar: 
-// g++ -std=c++17 -Wall -g -pthread -o main main.cpp test.cpp
-// Forma #2 de Compilar (requiere el archivo Makefile)
-// make
-
 int main(){
-    cout << "Hello EDA - MCC639G" <<endl;
-    int t = addOne(5);
-    cout << "Respuesta:" << t << endl;
+    LinkedList<int> list;
+    list.insert(10, 1);
+    list.insert(20, 2);
+    list.insert(30, 3);
 
-    return 0;
+    std::cout << "List using operator<<: " << list << "\n";
+
+    std::cout << "List using iterator: ";
+    for (auto it = list.begin(); it != list.end(); ++it) {
+        std::cout << *it << " ";
+    }
+    std::cout << "\n";
+
+    std::cout << "List using range-based for: ";
+    for (auto& x : list) {
+        std::cout << x << " ";
+    }
+    std::cout << "\n";
 }
