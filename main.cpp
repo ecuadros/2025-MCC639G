@@ -1,6 +1,10 @@
 #include <iostream>
-#include "LinkedList/LinkedList.h"
-#include "DoubleLinkedList/DoubleLinkedList.h"
+#include <thread>
+#include <vector>
+
+#include "linked_list/LinkedList.h"
+#include "double_linked_list/DoubleLinkedList.h"
+#include "linked_list/MutexLinkedList.h"
 
 using namespace std;
 
@@ -41,6 +45,28 @@ int main(){
         std::cout << *it << " ";
     }
     std::cout << "\n";
+
+    MutexLinkedList<int> mutex_linked_list;
+
+    auto writer = [&mutex_linked_list](int base) {
+        for (int i = 0; i < 5; i++) {
+            mutex_linked_list.insert(base + i, i);
+        }
+    };
+
+    auto reader = [&mutex_linked_list]() {
+        std::cout << "List: " << mutex_linked_list << "\n";
+    };
+
+    std::thread t1(writer, 100);
+    std::thread t2(writer, 200);
+    std::thread t3(reader);
+
+    t1.join();
+    t2.join();
+    t3.join();
+
+    std::cout << "Final: " << mutex_linked_list << "\n";
 
     return 0;
 }
