@@ -1,0 +1,21 @@
+./.git/hooks/sendemail-validate.sample:# Replace the TODO placeholders with appropriate checks according to your
+./.git/hooks/sendemail-validate.sample:	# TODO: Replace with appropriate checks (e.g. spell checking).
+./.git/hooks/sendemail-validate.sample:	# TODO: Replace with appropriate checks for this patch
+./.git/hooks/sendemail-validate.sample:	# TODO: Replace with appropriate checks for the whole series
+./doublelinkedlist.h:// TODO Activar el forward_iterator
+./doublelinkedlist.h:// TODO Agregar control de concurrencia
+./doublelinkedlist.h:// TODO Agregar que sea ascendente o descendente con el mismo codigo
+./doublelinkedlist.h:    // TODO: Done
+./doublelinkedlist.h:    // TODO: verifricar donde debe comenzar apuntando el iterator reverso
+./doublelinkedlist.h:    // TODO: Read (istream &is)
+./doublelinkedlist.h:// TODO Constructor por copia
+./doublelinkedlist.h:// TODO: Implementar y liberar la memoria de cada Node
+./doublelinkedlist.h:// TODO: Este operador debe quedar fuera de la clase
+./linkedlist.h:// TODO Activar el forward_iterator
+./linkedlist.h:// TODO Agregar control de concurrencia
+./linkedlist.h:// TODO Agregar que sea ascendente o descendente con el mismo codigo
+./linkedlist.h:    // TODO: Done
+./linkedlist.h:    // TODO: Read (istream &is)
+./linkedlist.h:// TODO Constructor por copia
+./linkedlist.h:// TODO: Implementar y liberar la memoria de cada Node
+./linkedlist.h:// TODO: Este operador debe quedar fuera de la clase
