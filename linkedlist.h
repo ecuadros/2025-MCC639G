@@ -1,6 +1,10 @@
 #ifndef __LINKEDLIST_H__
 #define __LINKEDLIST_H__
 #include <iostream>
+#include <utility>
+#include <mutex>
+#include <shared_mutex>
+#include <functional>
 #include "types.h"
 
 template <typename T, typename _Func>
@@ -78,17 +82,18 @@ public:
     using Node       = LLNode<Traits>; 
     using Container  = CLinkedList<Traits>;
     using iterator   = forward_linkedlist_iterator<Container>;
+    
 
 private:
     Node   *m_pRoot = nullptr;
     size_t m_nElem = 0;
     Func   m_fCompare;
+    mutable std::shared_mutex m_mutex;
 
 public:
     // Constructor
     CLinkedList();
     CLinkedList(CLinkedList &other);
-
     // TODO: Move contructor (leer bibliografia)
     CLinkedList(CLinkedList &&other);
 
@@ -96,13 +101,24 @@ public:
     virtual ~CLinkedList();
 
     void Insert(value_type &elem, Ref ref);
-private:
-    void InternalInsert(Node *&rParent, value_type &elem, Ref ref);
-    Node *GetRoot()    {    return m_pRoot;     };
+    void InsertThreadSafe(value_type &elem, Ref ref);
+    void PrintThreadSafe() const;
+    size_t SizeThreadSafe() const;
+    bool FindThreadSafe(value_type &elem) const;
+    void ReadLockedOperation(std::function<void()> operation) const;
+    void WriteLockedOperation(std::function<void()> operation);
 
-public:
+    Node *GetRoot()    {    return m_pRoot;     };
     iterator begin(){ return iterator(this, m_pRoot); };
     iterator end()  { return iterator(this, nullptr); } 
+
+
+private:
+    void InternalInsert(Node *&rParent, value_type &elem, Ref ref);
+    //Node *GetRoot()    {    return m_pRoot;     };
+
+public:
+
 
     friend std::ostream& operator<<(std::ostream &os, CLinkedList<Traits> &obj){
         auto pRoot = obj.GetRoot();
@@ -115,6 +131,54 @@ public:
 };
 
 template <typename Traits>
+inline void CLinkedList<Traits>::InsertThreadSafe(value_type &elem, Ref ref) {
+    std::unique_lock<std::shared_mutex> lock(m_mutex); // Lock exclusivo
+    InternalInsert(m_pRoot, elem, ref);
+}
+
+template <typename Traits>
+inline void CLinkedList<Traits>::PrintThreadSafe() const {
+    std::shared_lock<std::shared_mutex> lock(m_mutex); // Lock compartido
+    auto pRoot = m_pRoot;
+    while (pRoot) {
+        std::cout << pRoot->GetData() << "(" << pRoot->GetRef() << ") ";
+        pRoot = pRoot->GetNext();
+    }
+    std::cout << std::endl;
+}
+
+template <typename Traits>
+inline size_t CLinkedList<Traits>::SizeThreadSafe() const {
+    std::shared_lock<std::shared_mutex> lock(m_mutex); // Lock compartido
+    return m_nElem;
+}
+
+template <typename Traits>
+inline bool CLinkedList<Traits>::FindThreadSafe(value_type &elem) const {
+    std::shared_lock<std::shared_mutex> lock(m_mutex); // Lock compartido
+    auto current = m_pRoot;
+    while (current) {
+        if (current->GetData() == elem) {
+            return true;
+        }
+        current = current->GetNext();
+    }
+    return false;
+}
+
+template <typename Traits>
+inline void CLinkedList<Traits>::ReadLockedOperation(std::function<void()> operation) const {
+    std::shared_lock<std::shared_mutex> lock(m_mutex);
+    operation();
+}
+
+template <typename Traits>
+inline void CLinkedList<Traits>::WriteLockedOperation(std::function<void()> operation) {
+    std::unique_lock<std::shared_mutex> lock(m_mutex);
+    operation();
+}
+
+template <typename Traits>
 void CLinkedList<Traits>::Insert(value_type &elem, Ref ref){
     InternalInsert(m_pRoot, elem, ref);
 }
@@ -123,6 +187,7 @@ template <typename Traits>
 void CLinkedList<Traits>::InternalInsert(Node *&rParent, value_type &elem, Ref ref){
     if( !rParent || m_fCompare(elem, rParent->GetDataRef()) ){
         rParent = new Node(elem, ref, rParent);
+        m_nElem++;
         return;
     }
     // Tail recursion
@@ -132,10 +197,47 @@ void CLinkedList<Traits>::InternalInsert(Node *&rParent, value_type &elem, Ref r
 template <typename Traits>
 CLinkedList<Traits>::CLinkedList(){}
 
-// TODO Constructor por copia
+// TODO Constructor por copia 01
 //      Hacer loop copiando cada elemento
+// template <typename Traits>
+// CLinkedList<Traits>::CLinkedList(CLinkedList &other){
+// }
+
 template <typename Traits>
-CLinkedList<Traits>::CLinkedList(CLinkedList &other){
+CLinkedList<Traits>::CLinkedList(CLinkedList &other):m_pRoot(nullptr),m_nElem(0),m_fCompare(other.m_fCompare){
+    //validamos si lista original esta vacía
+    if(!other.w_pRoot){
+        return;
+    }
+
+    Node* currentOther = other.m_pRoot;
+    Node** currentThis = &m_pRoot;
+
+    while (currentOther){
+
+        //Crear una copia del nodo actual
+        *currentThis = new Node(currentOther->GetDataRef(),currentOther->GetRef());
+
+        m_nElem++;
+
+        //Mover al siguiente nodo ambas listas
+        currentThis = &((*currentThis)->GetNextRef());
+        currentOther = currentOther->GetNext();
+
+
+    }
+}
+//Destructor 02
+template <typename Traits>
+inline CLinkedList<Traits>::~CLinkedList() {
+    Node* current = m_pRoot;
+    while (current) {
+        Node* next = current->GetNext();
+        delete current;
+        current = next;
+    }
+    m_pRoot = nullptr;
+    m_nElem = 0;
 }
 
 // Move Constructor
@@ -146,20 +248,21 @@ CLinkedList<Traits>::CLinkedList(CLinkedList &&other){
     m_fCompare = std::move(other.m_fCompare);
 }
 
-template <typename Traits>
-CLinkedList<Traits>::~CLinkedList()
-{
-}
+// template <typename Traits>
+// CLinkedList<Traits>::~CLinkedList()
+// {
+// }
 
 // TODO: Este operador debe quedar fuera de a clase
-template <typename Traits>
-std::ostream &operator<<(std::ostream &os, CLinkedList<Traits> &obj){
-    auto pRoot = obj.GetRoot();
-    while( pRoot )
-        os << pRoot->GetData() << " ";
-    return os;
-}
+// template <typename Traits>
+// std::ostream &operator<<(std::ostream &os, CLinkedList<Traits> &obj){
+//     auto pRoot = obj.GetRoot();
+//     while( pRoot )
+//         os << pRoot->GetData() << " ";
+//     return os;
+// }
 
 void DemoLinkedList();
+void DemoConcurrencia();
 
 #endif // __LINKEDLIST_H__

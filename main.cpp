@@ -24,6 +24,7 @@ using namespace std;
 // make
 
 int main(){
+    setvbuf(stdout, nullptr, _IONBF, 0);
     cout << "Hello EDA - MCC639G" <<endl;
     // DemoTest();
     // DemoUtil();
@@ -32,6 +33,7 @@ int main(){
 
     // DemoVector();
     
-    DemoLinkedList();
+    //DemoLinkedList();
+    DemoConcurrencia();
     return 0;
 }
