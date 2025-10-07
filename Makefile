@@ -9,8 +9,9 @@ SRCS = main.cpp \
 	   pointers.cpp \
 	   linkedlist.cpp \
 	   doublelinkedlist.cpp
-       #vector.cpp \
-	   	
+	   ContainersDemo.cpp \
+	   vector.cpp
+
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(TARGET)

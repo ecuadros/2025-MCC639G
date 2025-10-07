@@ -4,6 +4,7 @@
 #include "clasestemplate.h"
 #include "linkedlist.h"
 #include "doublelinkedlist.h"
+#include "binarytree.h"
 #include "pointers.h"
 // #include "vector.h"
 
