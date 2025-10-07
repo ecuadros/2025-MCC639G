@@ -1,7 +1,6 @@
 #ifndef __LINKEDLISTNODE_H__
 #define __LINKEDLISTNODE_H__
 
-// Assuming Ref is just an int for now
 using Ref = int;
 
 template <typename T>

@@ -1,0 +1,1 @@
+List contents written to a file: 10 20 30 
