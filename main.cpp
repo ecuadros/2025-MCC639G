@@ -34,8 +34,8 @@ int main(){
 
     // DemoVector();
     
-    DemoLinkedList();
-    DemoDoubleLinkedList();
+    //DemoLinkedList();
+    //DemoDoubleLinkedList();
     DemoBinaryTree();
     return 0;
 }
