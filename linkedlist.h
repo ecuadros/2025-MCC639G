@@ -69,20 +69,51 @@ template <typename T>
 CLinkedList<T>::CLinkedList()
 {
 }
-
+//Constructor Copia
 template <typename T>
 CLinkedList<T>::CLinkedList(CLinkedList &other)
 {
+    Node* currentOther = other.m_pRoot;
+    Node** currentThis = &m_pRoot;
+
+    while (currentOther != nullptr)
+    {
+        //crear un nuevo nodo con los mismos datos
+        *currentThis = new Node(currentOther->GetDataRef(), currentOther->GetRef());
+
+        //avanzar ambas listas
+        currentOther = currentOther->GetNext();
+        currentThis = &((*currentThis)->GetNextRef());
+    }
+    
 }
 
+//Move contructor
 template <typename T>
 CLinkedList<T>::CLinkedList(CLinkedList &&other)
 {
+    //Move Contructor "quita" los nodos de 'other'
+    m_pRoot = other.m_pRoot; //Tomamos ownership de los nodos
+    other.m_pRoot = nullptr; //'other' queda vacío y seguro
+
 }
 
 template <typename T>
 CLinkedList<T>::~CLinkedList()
 {
+    //Destructor libera la memoria
+    Node* current = m_pRoot;
+    while (current != nullptr)
+    {
+        /* code */
+        Node* next = current->GetNext(); //Guardar referencia al siguiente
+        delete current; //liberar nod actual
+        current = next; //Avanzar al siguiente
+
+    }
+
+    m_pRoot = nullptr;
+    
 }
 
 template <typename T>
