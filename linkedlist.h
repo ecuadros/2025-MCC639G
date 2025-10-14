@@ -45,8 +45,9 @@ private:
     // TODO: Implementar
     void InternalInsert(Node *&rParent, Type &elem, Ref ref);
     Node *GetRoot()    {    return m_pRoot;     };
-
-    friend std::ostream& operator<<(std::ostream &os, CLinkedList<T> &obj);
+    
+    template <typename U>
+    friend std::ostream& operator<<(std::ostream &os, CLinkedList<U> &obj);
 };
 
 template <typename T>
@@ -87,8 +88,11 @@ CLinkedList<T>::~CLinkedList()
 template <typename T>
 std::ostream &operator<<(std::ostream &os, CLinkedList<T> &obj){
     auto pRoot = obj.GetRoot();
-    while( pRoot )
+    while( pRoot ){
         os << pRoot->GetData() << " ";
+        pRoot = pRoot->GetNext();
+    }
+        
     return os;
 }
 
