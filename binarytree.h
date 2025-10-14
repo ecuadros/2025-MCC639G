@@ -141,8 +141,9 @@ public:
     // TODO: Quispe David
     void inorder(Node  *pNode, void (*visit) (value_type& item)){
         if( pNode ){   
+        	(*visit)(pNode->getDataRef());
             inorder(pNode->getChild(0), *visit);
-            (*visit)(pNode->getDataRef());
+            
             inorder(pNode->getChild(1), *visit);
         }
     }
