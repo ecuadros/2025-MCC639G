@@ -48,11 +48,20 @@ void DemoLinkedList(){
     l1.Write(cout);
     cout <<endl;
 
+    // constructor por cpoia
+    std::cout << endl << "constructor por copia" << std::endl;
+    std::cout << "l1 (original): ";
+    foreach(l1.begin(), l1.end(), ::Print<T1>);
+    CLinkedList< AscendingTrait<T1> > lcopy(l1);
+    std::cout <<endl << "l_copy (copy constructor from l1): ";
+    foreach(lcopy.begin(), lcopy.end(), ::Print<T1>);
+
     std::ofstream of("LL.txt");
     l1.Write(of);
     of.close();
 }
 
+//<<<<<<< HEAD:ContainersDemo.cpp
 void DemoDoubleLinkedList(){
     std::vector< std::pair<T1, Ref> > v1 = {
         {4, 8}, {2, 5}, {7, 3}, {1, 9}, {5, 2}
@@ -102,3 +111,5 @@ void DemoBinaryTree(){
     t1.inorder(t1.getRoot(), ::Print<T1>);
     std::cout << std::endl;
 }
+//=======
+//>>>>>>> 817223c (implementando copy constructor):linkedlist.cpp

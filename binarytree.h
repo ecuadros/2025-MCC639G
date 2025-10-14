@@ -205,9 +205,9 @@ ostream & operator<<(ostream &os, CBinaryTree<Traits> &obj){
     // verificar no vacio
     
     if (obj.size()>0)
-        obj.inorder(os)
+        obj.inorder(os);
     else
-        os << "Empty binary tree."
+        os << "Empty binary tree.";
     
     //obj.inorder(os);
     return os;

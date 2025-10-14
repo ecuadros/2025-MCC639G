@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 #ifndef __DOUBLE_LINKEDLIST_H__
 #define __DOUBLE_LINKEDLIST_H__
+=======
+#ifndef __DOUBLELINKEDLIST_H__
+#define __DOUBLELINKEDLIST_H__
+>>>>>>> 817223c (implementando copy constructor)
 #include <iostream>
 #include "types.h"
 #include "traits.h"
@@ -133,7 +138,12 @@ public:
     forward_iterator end()  { return forward_iterator(this, nullptr); } 
 
     // TODO: verifricar donde debe comenzar apuntando el iterator reverso
+<<<<<<< HEAD
     backward_iterator rbegin(){ return backward_iterator(this, m_pTail); };
+=======
+    // corregio backward iterator
+    backward_iterator rbegin(){ return backward_iterator(this, m_pRoot); };
+>>>>>>> 817223c (implementando copy constructor)
     backward_iterator rend()  { return backward_iterator(this, nullptr); } 
 
     friend std::ostream& operator<<(std::ostream &os, CDoubleLinkedList<Traits> &obj){
@@ -213,4 +223,8 @@ CDoubleLinkedList<Traits>::~CDoubleLinkedList()
 
 void DemoDoubleLinkedList();
 
+<<<<<<< HEAD
 #endif // __DOUBLE_LINKEDLIST_H__
+=======
+#endif // __DOUBLELINKEDLIST_H__
+>>>>>>> 817223c (implementando copy constructor)
