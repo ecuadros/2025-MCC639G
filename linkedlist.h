@@ -20,6 +20,7 @@ public:
     Type  &GetDataRef() { return m_data;     }
     Node * GetNext()    { return m_pNext;    }
     Node *&GetNextRef() { return m_pNext;    }
+    Ref    GetRef()     { return m_ref;      }
 };
 
 template <typename T>
@@ -41,6 +42,8 @@ public:
     virtual ~CLinkedList();
 
     void Insert(Type &elem, Ref ref);
+
+    bool IsEmpty() const { return m_pRoot == nullptr; }
 private:
     // TODO: Implementar
     void InternalInsert(Node *&rParent, Type &elem, Ref ref);
@@ -73,17 +76,24 @@ CLinkedList<T>::CLinkedList()
 template <typename T>
 CLinkedList<T>::CLinkedList(CLinkedList &other)
 {
-    Node* currentOther = other.m_pRoot;
-    Node** currentThis = &m_pRoot;
+    if (other.m_pRoot == nullptr){
+        m_pRoot = nullptr;
+        return;
+    }
 
+    m_pRoot = new Node(other.m_pRoot->GetDataRef(),other.m_pRoot->GetRef());
+
+    Node* currentThis = m_pRoot;
+    Node* currentOther = other.m_pRoot->GetNext();
+    
     while (currentOther != nullptr)
     {
         //crear un nuevo nodo con los mismos datos
-        *currentThis = new Node(currentOther->GetDataRef(), currentOther->GetRef());
+        currentThis->GetNextRef() = new Node(currentOther->GetDataRef(), currentOther->GetRef());
 
-        //avanzar ambas listas
+        currentThis = currentThis->GetNext();
         currentOther = currentOther->GetNext();
-        currentThis = &((*currentThis)->GetNextRef());
+
     }
     
 }
