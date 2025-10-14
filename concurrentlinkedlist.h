@@ -1,11 +1,12 @@
 #ifndef __LINKEDLIST_H__
 #define __LINKEDLIST_H__
 #include "types.h"
+#include <mutex>
 
-template <typename T> class CLinkedList;
+template <typename T> class CConcurrentLinkedList;
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, const CLinkedList<T>& list);
+std::ostream& operator<<(std::ostream& os, const CConcurrentLinkedList<T>& list);
 
 
 template <typename T>
@@ -32,29 +33,28 @@ public:
 };
 
 
-
 template <typename T>
-class CLinkedList{
+class CConcurrentLinkedList{
 private:
     using Type = T; 
     using Node =  LLNode<Type>  ; 
     Node *m_pHead = nullptr;
+    mutable std::mutex m_mutex;
 public:
-    
     // Constructor
-    CLinkedList();// : m_pHead(nullptr) {}
+    CConcurrentLinkedList();// : m_pHead(nullptr) {}
     // TODO: Constructor Copia DONE
-    CLinkedList(CLinkedList &other);
+    CConcurrentLinkedList(CConcurrentLinkedList &other);
 
-    // TODO: Move contructor
-    CLinkedList(CLinkedList &&other);
+    // TODO: Move contructor 
+    CConcurrentLinkedList(CConcurrentLinkedList &&other);
 
     // Destructor seguro DONE
-    virtual ~CLinkedList();
+    virtual ~CConcurrentLinkedList();
 
     // concurrent 
     void Insert(Type &elem, Ref ref);
-    friend std::ostream& operator<< <T>(std::ostream& os, const CLinkedList<T>& list);
+    friend std::ostream& operator<< <T>(std::ostream& os, const CConcurrentLinkedList<T>& list);
     Node* GetHead(){ return m_pHead; }
 
 private:
@@ -64,9 +64,10 @@ private:
 };
 
 template <typename T>
-std::ostream& operator<< (std::ostream &os, CLinkedList<T> &list){
+std::ostream& operator<< (std::ostream &os, CConcurrentLinkedList<T> &list){
+        std::lock_guard<std::mutex> lock(list.m_mtx);
         os << "[";
-        //typename CLinkedList<T>::Node *pCurrent = list.GetHead();
+        //typename CConcurrentLinkedList<T>::Node *pCurrent = list.GetHead();
         LLNode<T> *pCurrent = list.GetHead();//list.GetRoot();
         while (pCurrent) {
             os << pCurrent->GetData();
@@ -82,8 +83,9 @@ std::ostream& operator<< (std::ostream &os, CLinkedList<T> &list){
 
 // copy constructor: DONE
 template <typename T>
-CLinkedList<T>::CLinkedList(CLinkedList &other) : m_pHead(nullptr)
+CConcurrentLinkedList<T>::CConcurrentLinkedList(CConcurrentLinkedList &other) : m_pHead(nullptr)
 {
+    std::lock_guard<std::mutex> guard(other.m_mutex);
     if (!other.m_pHead) return; // empty list
     Node *pOtherCurrent = other.m_pHead;
     m_pHead = new Node(pOtherCurrent->GetDataRef(), pOtherCurrent->GetRef());
@@ -104,12 +106,12 @@ CLinkedList<T>::CLinkedList(CLinkedList &other) : m_pHead(nullptr)
 
 
 template <typename T>
-void CLinkedList<T>::Insert(Type &elem, Ref ref){
+void CConcurrentLinkedList<T>::Insert(Type &elem, Ref ref){
     InternalInsert(m_pHead, elem, ref);
 }
 
 template <typename T>
-void CLinkedList<T>::InternalInsert(Node *&rParent, Type &elem, Ref ref){
+void CConcurrentLinkedList<T>::InternalInsert(Node *&rParent, Type &elem, Ref ref){
     if( !rParent || elem < rParent->GetDataRef() ){
         rParent = new Node(elem, ref, rParent);
         return;
@@ -119,21 +121,26 @@ void CLinkedList<T>::InternalInsert(Node *&rParent, Type &elem, Ref ref){
 }
 
 template <typename T>
-CLinkedList<T>::CLinkedList()
+CConcurrentLinkedList<T>::CConcurrentLinkedList()
 {
 }
 
 
 
-
+// move constructor
 template <typename T>
-CLinkedList<T>::CLinkedList(CLinkedList &&other)
+CConcurrentLinkedList<T>::CConcurrentLinkedList(CConcurrentLinkedList &&other)
 {
+    std::lock_guard<std::mutex> guard(other.m_mutex);
+    m_pHead = other.m_pHead;
+    other.m_pHead = nullptr;
 }
 
+// Destructor
 template <typename T>
-CLinkedList<T>::~CLinkedList()
+CConcurrentLinkedList<T>::~CConcurrentLinkedList()
 {
+    std::lock_guard<std::mutex> guard(m_mutex);
     Node *current = m_pHead;
     while (current != nullptr){
         Node *next = current->GetNext();
@@ -144,6 +151,6 @@ CLinkedList<T>::~CLinkedList()
 }
 
 
-void DemoLinkedList();
+void DemoConcurrentLinkedList();
 
 #endif // __LINKEDLIST_H__
