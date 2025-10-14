@@ -1,11 +1,14 @@
 #ifndef __LINKEDLIST_H__
 #define __LINKEDLIST_H__
 #include "types.h"
+#include <mutex> // ¡Necesario para la concurrencia!
+#include <vector> // Para una forma segura de extraer datos
 
 template <typename T> class CLinkedList;
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const CLinkedList<T>& list);
+
 
 template <typename T>
 class LLNode{
@@ -26,7 +29,7 @@ public:
     LLNode *&GetNextRef() { return m_pNext;    }
     Ref GetRef(){ return m_ref;}
     
-    friend std::ostream& operator<< (std::ostream &os, CLinkedList<T> &list);
+
     
 };
 
@@ -37,28 +40,47 @@ class CLinkedList{
 private:
     using Type = T; 
     using Node =  LLNode<Type>  ; 
-    Node *m_pRoot = nullptr;
+    Node *m_pHead = nullptr;
 public:
     
     // Constructor
-    CLinkedList();
-    // TODO: Constructor Copia
+    CLinkedList();// : m_pHead(nullptr) {}
+    // TODO: Constructor Copia DONE
     CLinkedList(CLinkedList &other);
 
     // TODO: Move contructor
     CLinkedList(CLinkedList &&other);
 
-    // Destructor seguro
+    // Destructor seguro DONE
     virtual ~CLinkedList();
 
     void Insert(Type &elem, Ref ref);
+    friend std::ostream& operator<< <T>(std::ostream& os, const CLinkedList<T>& list);
+    Node* GetHead(){ return m_pHead; }
 private:
     // TODO: Implementar
     void InternalInsert(Node *&rParent, Type &elem, Ref ref);
-    Node GetRoot(){ return m_pRoot };
+    
 };
 
-// copy constructor
+template <typename T>
+std::ostream& operator<< (std::ostream &os, CLinkedList<T> &list){
+        os << "[";
+        //typename CLinkedList<T>::Node *pCurrent = list.GetHead();
+        LLNode<T> *pCurrent = list.GetHead();//list.GetRoot();
+        while (pCurrent) {
+            os << pCurrent->GetData();
+            if (pCurrent->GetNext()) {
+                os << ", ";
+            }
+            pCurrent = pCurrent->GetNext();
+        }
+        os << "]";
+        return os;
+    }
+
+
+// copy constructor: DONE
 template <typename T>
 CLinkedList<T>::CLinkedList(CLinkedList &other) : m_pHead(nullptr)
 {
@@ -78,21 +100,7 @@ CLinkedList<T>::CLinkedList(CLinkedList &other) : m_pHead(nullptr)
     }
 }
 
-template <typename T>
-std::ostream& operator<< <>(std::ostream &os, CLinkedList<T> &list){
-        os << "[";
-        typename CLinkedList<T>::Node *pCurrent = list.GetRoot();
-        
-        while (pCurrent) {
-            os << pCurrent->GetData();
-            if (pCurrent->GetNext()) {
-                os << " -> ";
-            }
-            pCurrent = pCurrent->GetNext();
-        }
-        os << "]";
-        return os;
-    }
+
 
 
 template <typename T>
@@ -117,6 +125,7 @@ CLinkedList<T>::CLinkedList()
 
 
 
+
 template <typename T>
 CLinkedList<T>::CLinkedList(CLinkedList &&other)
 {
@@ -125,6 +134,13 @@ CLinkedList<T>::CLinkedList(CLinkedList &&other)
 template <typename T>
 CLinkedList<T>::~CLinkedList()
 {
+    Node *current = m_pHead;
+    while (current != nullptr){
+        Node *next = current->GetNext();
+        delete current;
+        current = next;
+    }
+    m_pHead = nullptr;
 }
 
 
