@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wunused-value -g -pthread # Añadido -pthread
+CXXFLAGS = -std=c++11 -Wall -Wunused-value -g -pthread # Añadido -pthread
 LDFLAGS = -pthread # Añadido -pthread
 
 TARGET = main
@@ -9,7 +9,7 @@ SRCS = main.cpp \
 	   pointers.cpp \
 	   linkedlist.cpp\
 	   concurrentlinkedlist.cpp\
-	   
+
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(TARGET)

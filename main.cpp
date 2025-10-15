@@ -3,6 +3,7 @@
 #include "util.h"
 #include "clasestemplate.h"
 #include "linkedlist.h"
+#include "concurrentlinkedlist.h"
 #include "pointers.h"
 using namespace std;
 
@@ -29,5 +30,6 @@ int main(){
 
     //DemoBasicPointers();
     DemoLinkedList();
+    DemoConcurrentLinkedList();
     return 0;
 }

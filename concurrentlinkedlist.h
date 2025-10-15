@@ -1,14 +1,14 @@
-#ifndef __LINKEDLIST_H__
-#define __LINKEDLIST_H__
+#ifndef __CONCURRENTLINKEDLIST_H__
+#define __CONCURRENTLINKEDLIST_H__
 #include "types.h"
 #include <mutex>
-
+#include "linkedlist.h"
 template <typename T> class CConcurrentLinkedList;
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const CConcurrentLinkedList<T>& list);
 
-
+/*
 template <typename T>
 class LLNode{
 private:
@@ -31,7 +31,7 @@ public:
 
     
 };
-
+*/
 
 template <typename T>
 class CConcurrentLinkedList{
@@ -46,7 +46,7 @@ public:
     // TODO: Constructor Copia DONE
     CConcurrentLinkedList(CConcurrentLinkedList &other);
 
-    // TODO: Move contructor 
+    // TODO: Move contructor DONE
     CConcurrentLinkedList(CConcurrentLinkedList &&other);
 
     // Destructor seguro DONE
@@ -54,21 +54,18 @@ public:
 
     // concurrent 
     void Insert(Type &elem, Ref ref);
-    friend std::ostream& operator<< <T>(std::ostream& os, const CConcurrentLinkedList<T>& list);
-    Node* GetHead(){ return m_pHead; }
-
-private:
-    // TODO: Implementar
-    void InternalInsert(Node *&rParent, Type &elem, Ref ref);
     
-};
+    friend std::ostream& operator<< <>(std::ostream& os, const CConcurrentLinkedList<T>& list);
 
-template <typename T>
-std::ostream& operator<< (std::ostream &os, CConcurrentLinkedList<T> &list){
-        std::lock_guard<std::mutex> lock(list.m_mtx);
+    Node* GetHead(){ 
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_pHead; 
+        }
+    
+    void Print(std::ostream &os) const {
+        std::lock_guard<std::mutex> lock(m_mutex);
         os << "[";
-        //typename CConcurrentLinkedList<T>::Node *pCurrent = list.GetHead();
-        LLNode<T> *pCurrent = list.GetHead();//list.GetRoot();
+        Node *pCurrent = m_pHead;
         while (pCurrent) {
             os << pCurrent->GetData();
             if (pCurrent->GetNext()) {
@@ -77,9 +74,18 @@ std::ostream& operator<< (std::ostream &os, CConcurrentLinkedList<T> &list){
             pCurrent = pCurrent->GetNext();
         }
         os << "]";
-        return os;
     }
+private:
+    // TODO: Implementar
+    void InternalInsert(Node *&rParent, Type &elem, Ref ref);
+    
+};
 
+template <typename T>
+std::ostream& operator<<(std::ostream &os, const CConcurrentLinkedList<T> &list) {
+    list.Print(os);
+    return os;
+}
 
 // copy constructor: DONE
 template <typename T>
@@ -153,4 +159,4 @@ CConcurrentLinkedList<T>::~CConcurrentLinkedList()
 
 void DemoConcurrentLinkedList();
 
-#endif // __LINKEDLIST_H__
+#endif // __CONCURRENTLINKEDLIST_H__
