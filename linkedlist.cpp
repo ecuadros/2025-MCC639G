@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "linkedlist.h"
 
 void DemoLinkedList(){
@@ -23,10 +24,17 @@ void DemoLinkedList(){
     std::cout << "Actual Lista copiada: ";
     std::cout << lcopied << std::endl;
 
-    CLinkedList<float> l2;
-    float f = 3.14;
-    l2.Insert(f, 10.5);
-    // std::cout << l2;
+    // Read test
+    CLinkedList<int> l3;
+    std::ifstream datafile("datos.txt");
+    std::cout << "\nRead from file datos.txt"<< std::endl;
+    if (datafile.is_open()){
+        l3.Read(datafile);
+        datafile.close();
+        std::cout << "List from file: " <<l3 << std::endl;
+    }else{
+        std::cout << "Cannot open fiel" << std::endl;
+    }
 
     
     std::cout << "FIN"<<std::endl;

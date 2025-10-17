@@ -1,10 +1,11 @@
 #include <iostream>
 #include <vector>
+#include <thread>
 #include "concurrentlinkedlist.h"
 
 void DemoConcurrentLinkedList(){
     
-    std::cout << "\n=== DEMOSTRACIÓN DE LISTA ENLAZADA CONCURRENTE ===" << std::endl;
+    std::cout << "\nDEMOSTRACIÓN DE LISTA ENLAZADA CONCURRENTE " << std::endl;
     CConcurrentLinkedList<int> l1;
     int x = 5;
     l1.Insert(x, 3);
@@ -15,20 +16,34 @@ void DemoConcurrentLinkedList(){
     CConcurrentLinkedList<int> lcopied(l1);
     
     // std::cout << x;
-    std::cout << ">>>> Copy cosntructor con concurerncia"<< std::endl;
+    std::cout << ">>> Copy cosntructor" << std::endl;
     std::cout << "Lista original (l1): ";
     std::cout << l1 << std::endl;
     std::cout << "--> Lista copiada"<< std::endl;
-    x = 99;
+    x = 6;
     l1.Insert(x, 16);
     std::cout << "Actual Lista original modificada: ";
     std::cout << l1 << std::endl;
     std::cout << "Actual Lista copiada: ";
     std::cout << lcopied << std::endl;
 
+    std::cout << "\n>>> Test concurrencia" << std::endl;
+    std::vector<std::thread> thrds;
+    CConcurrentLinkedList<int> l2;
+    for (int i=0; i<10; ++i){
+        thrds.emplace_back([&l2, i](){
+            int value = i*10;
+            Ref ref   = i;
+            l2.Insert(value, ref);
+            std::cout << "Thread " << i << " inserted: " << value << std::endl;
+        }
+        );
+        }
     
-
-    
+    for (auto& t : thrds){
+        t.join();
+    }
+    std::cout << "Lista final" <<l2<<std::endl;
     std::cout << "FIN"<<std::endl;
 }
 

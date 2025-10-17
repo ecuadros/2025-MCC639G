@@ -1,11 +1,13 @@
 #ifndef __LINKEDLIST_H__
 #define __LINKEDLIST_H__
 #include "types.h"
+#include <sstream>
 
 template <typename T> class CLinkedList;
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const CLinkedList<T>& list);
+
 
 
 template <typename T>
@@ -55,6 +57,7 @@ public:
     // concurrent 
     void Insert(Type &elem, Ref ref);
     friend std::ostream& operator<< <T>(std::ostream& os, const CLinkedList<T>& list);
+    void Read(std::istream &is);
     Node* GetHead(){ return m_pHead; }
 
 private:
@@ -63,6 +66,8 @@ private:
     
 };
 
+
+// ---- Implementaciones ----
 template <typename T>
 std::ostream& operator<< (std::ostream &os, CLinkedList<T> &list){
         os << "[";
@@ -79,6 +84,29 @@ std::ostream& operator<< (std::ostream &os, CLinkedList<T> &list){
         return os;
     }
 
+template <typename T>
+void CLinkedList<T>::Read(std::istream &is){
+    Type elem;
+    Ref ref = 0;
+    std::string line;
+
+    while (is >> elem){
+        ref++;
+        Insert(elem, ref);
+        if (is.peek()==' ' || is.peek()=='\n'){
+            is.get();
+        }
+        // stop with a ;
+        if (is.peek()==';' || is.peek()==EOF){
+            break;
+        }
+    }
+    // clean
+    if (is.eof()){
+        is.clear();
+    }
+
+}
 
 // copy constructor: DONE
 template <typename T>

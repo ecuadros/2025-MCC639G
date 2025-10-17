@@ -3,8 +3,9 @@
 #include "types.h"
 #include <mutex>
 #include "linkedlist.h"
-template <typename T> class CConcurrentLinkedList;
 
+
+template <typename T> class CConcurrentLinkedList;
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const CConcurrentLinkedList<T>& list);
 
@@ -155,6 +156,7 @@ CConcurrentLinkedList<T>::~CConcurrentLinkedList()
     }
     m_pHead = nullptr;
 }
+
 
 
 void DemoConcurrentLinkedList();
