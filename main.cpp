@@ -2,9 +2,9 @@
 #include "test.h"
 #include "util.h"
 #include "clasestemplate.h"
-#include "linkedlist.h"
+//#include "linkedlist.h"
 #include "doublelinkedlist.h"
-#include "binarytree.h"
+//#include "binarytree.h"
 #include "pointers.h"
 // #include "vector.h"
 
@@ -34,7 +34,7 @@ int main(){
 
     // DemoVector();
     
-    DemoLinkedList();
+    //DemoLinkedList();
     //DemoDoubleLinkedList();
     return 0;
 }
