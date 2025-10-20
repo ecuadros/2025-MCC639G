@@ -258,7 +258,7 @@ std::istream &CDoubleLinkedList<Traits>::Read(std::istream &is)
     value_type data;
     Ref ref;
     
-    // Read until end of stream
+
     while (is >> std::ws && is.peek() != EOF) {
         // Read the data value
         if (!(is >> data)) {
@@ -272,32 +272,31 @@ std::istream &CDoubleLinkedList<Traits>::Read(std::istream &is)
         is >> std::ws >> ch;
         if (ch != '(') {
             // Skip this malformed entry
-            is.ignore(256, ','); // Skip until next comma or end
+            is.ignore(256, ','); 
             continue;
         }
         
         // Read the ref value
         if (!(is >> ref)) {
             // Skip this malformed entry
-            is.ignore(256, ','); // Skip until next comma or end
+            is.ignore(256, ','); 
             continue;
         }
         
         // Read the closing parenthesis
         is >> std::ws >> ch;
         if (ch != ')') {
-            // Skip this malformed entry
-            is.ignore(256, ','); // Skip until next comma or end
+            is.ignore(256, ','); 
             continue;
         }
         
-        // Insert the element
+        // Insert value and ref
         Insert(data, ref);
         
         // Skip whitespace and check for comma
         is >> std::ws;
         if (is.peek() == ',') {
-            is.get(); // consume the comma
+            is.get(); 
         }
     }
     
