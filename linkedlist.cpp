@@ -26,8 +26,8 @@ void DemoLinkedList(){
 
     // Read test
     CLinkedList<int> l3;
-    std::ifstream datafile("datos.txt");
-    std::cout << "\nRead from file datos.txt"<< std::endl;
+    std::ifstream datafile("ll_datos.txt");
+    std::cout << "\nRead from file ll_datos.txt"<< std::endl;
     if (datafile.is_open()){
         l3.Read(datafile);
         datafile.close();

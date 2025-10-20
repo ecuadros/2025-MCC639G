@@ -88,7 +88,7 @@ std::ostream& operator<< (std::ostream &os, CLinkedList<T> &list){
 template <typename Traits>
 std::istream &CLinkedList<Traits>::Read(std::istream &is)
 {
-    // Clear existing list
+    // Clear the existing list
     Node *current = m_pHead;
     while (current) {
         Node *next = current->GetNext();
@@ -96,38 +96,48 @@ std::istream &CLinkedList<Traits>::Read(std::istream &is)
         current = next;
     }
     m_pHead = nullptr;
-    m_pTail = nullptr;
-    m_nElem = 0;
 
-    std::string line;
-    // entire line
-    if (std::getline(is, line)) {
-        std::stringstream ss(line);
-        std::string token;
-        
-        // data(ref) pair separated by space
-        while (std::getline(ss, token, ' ')) {
-            
-            size_t openParen = token.find('(');
-            size_t closeParen = token.find(')');
-            
-            if (openParen != std::string::npos && closeParen != std::string::npos && 
-                openParen < closeParen) {
-                std::string dataStr = token.substr(0, openParen);
-                value_type data;
-                std::stringstream dataStream(dataStr);
-                dataStream >> data;
-                
-                std::string refStr = token.substr(openParen + 1, closeParen - openParen - 1);
-                Ref ref;
-                std::stringstream refStream(refStr);
-                refStream >> ref;
-                
-                // insert into he list
-                Insert(data, ref);
-                
-            }
+    char ch;
+    Type data;
+    Ref ref;
+    
+    // Read until end of stream
+    while (is >> std::ws && is.peek() != EOF) {
+        // Read the data value
+        if (!(is >> data)) {
+            // Skip invalid characters and continue
+            is.clear();
+            is.ignore(1);
+            continue;
         }
+        
+        // Read the opening parenthesis - skip whitespace first
+        is >> std::ws;
+        if (!is.get(ch) || ch != '(') {
+            // If no opening parenthesis, skip to next space and continue
+            is.ignore(256, ' ');
+            continue;
+        }
+        
+        // Read the ref value - skip whitespace before reading ref
+        is >> std::ws;
+        if (!(is >> ref)) {
+            // If ref reading fails, skip to next closing parenthesis or space
+            is.clear();
+            is.ignore(256, ')');
+            continue;
+        }
+        
+        // Read the closing parenthesis - skip whitespace first
+        is >> std::ws;
+        if (!is.get(ch) || ch != ')') {
+            // If no closing parenthesis, skip to next space and continue
+            is.ignore(256, ' ');
+            continue;
+        }
+        
+        // Insert the element
+        Insert(data, ref);
     }
     
     return is;
