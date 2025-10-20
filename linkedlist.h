@@ -57,9 +57,11 @@ public:
     // concurrent 
     void Insert(Type &elem, Ref ref);
     friend std::ostream& operator<< <T>(std::ostream& os, const CLinkedList<T>& list);
-    void Read(std::istream &is);
+    std::istream &Read(std::istream &is);
     Node* GetHead(){ return m_pHead; }
-
+    friend std::istream &operator>>(std::istream &is, CLinkedList &list) {
+        return list.Read(is);
+    }
 private:
     // TODO: Implementar
     void InternalInsert(Node *&rParent, Type &elem, Ref ref);
@@ -70,42 +72,65 @@ private:
 // ---- Implementaciones ----
 template <typename T>
 std::ostream& operator<< (std::ostream &os, CLinkedList<T> &list){
-        os << "[";
+        
         //typename CLinkedList<T>::Node *pCurrent = list.GetHead();
-        LLNode<T> *pCurrent = list.GetHead();//list.GetRoot();
+        auto *pCurrent = list.GetHead();//list.GetRoot();
         while (pCurrent) {
-            os << pCurrent->GetData();
-            if (pCurrent->GetNext()) {
-                os << ", ";
-            }
+            os << pCurrent->GetData()<< "(" << pCurrent->GetRef() << ")";
+
             pCurrent = pCurrent->GetNext();
         }
-        os << "]";
+        
         return os;
     }
 
-template <typename T>
-void CLinkedList<T>::Read(std::istream &is){
-    Type elem;
-    Ref ref = 0;
+
+template <typename Traits>
+std::istream &CLinkedList<Traits>::Read(std::istream &is)
+{
+    // Clear existing list
+    Node *current = m_pHead;
+    while (current) {
+        Node *next = current->GetNext();
+        delete current;
+        current = next;
+    }
+    m_pHead = nullptr;
+    m_pTail = nullptr;
+    m_nElem = 0;
+
     std::string line;
-
-    while (is >> elem){
-        ref++;
-        Insert(elem, ref);
-        if (is.peek()==' ' || is.peek()=='\n'){
-            is.get();
-        }
-        // stop with a ;
-        if (is.peek()==';' || is.peek()==EOF){
-            break;
+    // entire line
+    if (std::getline(is, line)) {
+        std::stringstream ss(line);
+        std::string token;
+        
+        // data(ref) pair separated by space
+        while (std::getline(ss, token, ' ')) {
+            
+            size_t openParen = token.find('(');
+            size_t closeParen = token.find(')');
+            
+            if (openParen != std::string::npos && closeParen != std::string::npos && 
+                openParen < closeParen) {
+                std::string dataStr = token.substr(0, openParen);
+                value_type data;
+                std::stringstream dataStream(dataStr);
+                dataStream >> data;
+                
+                std::string refStr = token.substr(openParen + 1, closeParen - openParen - 1);
+                Ref ref;
+                std::stringstream refStream(refStr);
+                refStream >> ref;
+                
+                // insert into he list
+                Insert(data, ref);
+                
+            }
         }
     }
-    // clean
-    if (is.eof()){
-        is.clear();
-    }
-
+    
+    return is;
 }
 
 // copy constructor: DONE

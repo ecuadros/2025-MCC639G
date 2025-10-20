@@ -7,7 +7,7 @@ void DemoLinkedList(){
     int x = 5;
     l1.Insert(x, 3);
     x = 7;
-    l1.Insert(x, 14);
+    l1.Insert(x, 4);
 
     // copiando l1
     CLinkedList<int> lcopied(l1);
