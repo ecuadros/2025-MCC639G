@@ -183,11 +183,37 @@ void CDoubleLinkedList<Traits>::InternalInsert(Node *&rParent, value_type &elem,
 template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(){}
 
-// TODO Constructor por copia
+// TODO Constructor por copia DONE
 //      Hacer loop copiando cada elemento
 template <typename Traits>
-CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other){
+CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other) 
+    : m_pRoot(nullptr), m_pTail(nullptr), m_nElem(0), m_fCompare(other.m_fCompare)
+{
+    if (!other.m_pRoot) { // empty contdition
+        return;
+    }
+    
+    // copy first node
+    m_pRoot = new Node(other.m_pRoot->GetDataRef(), other.m_pRoot->GetRef());
+    m_pRoot->SetPrev(nullptr);
+    
+    Node *current = m_pRoot;
+    Node *otherCurrent = other.m_pRoot->GetNext();
+    
+    // remaining nodes
+    while (otherCurrent) {
+        Node *newNode = new Node(otherCurrent->GetDataRef(), otherCurrent->GetRef());
+        current->SetNext(newNode);
+        newNode->SetPrev(current);
+        
+        current = newNode;
+        otherCurrent = otherCurrent->GetNext();
+    }
+    
+    m_pTail = current;
+    m_nElem = other.m_nElem;
 }
+
 
 // Move Constructor
 template <typename Traits>
@@ -201,6 +227,15 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
 template <typename Traits>
 CDoubleLinkedList<Traits>::~CDoubleLinkedList()
 {
+    Node *current = m_pRoot;
+    while (current) {
+        Node *next = current->GetNext();
+        delete current;
+        current = next;
+    }
+    m_pRoot = nullptr;
+    m_pTail = nullptr;
+    m_nElem = 0;
 }
 
 // TODO: Este operador debe quedar fuera de la clase

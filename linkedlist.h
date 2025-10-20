@@ -89,6 +89,7 @@ public:
     forward_iterator begin(){ return forward_iterator(this, m_pRoot); };
     forward_iterator end()  { return forward_iterator(this, nullptr); } 
 
+    CLinkedList<Traits>& operator=(const CLinkedList<Traits>& other);
     friend std::ostream& operator<<(std::ostream &os, CLinkedList<Traits> &obj){
         auto pRoot = obj.GetRoot();
         while( pRoot ){
