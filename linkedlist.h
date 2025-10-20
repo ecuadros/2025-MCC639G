@@ -105,38 +105,29 @@ std::istream &CLinkedList<Traits>::Read(std::istream &is)
     while (is >> std::ws && is.peek() != EOF) {
         // Read the data value
         if (!(is >> data)) {
-            // Skip invalid characters and continue
             is.clear();
             is.ignore(1);
             continue;
         }
-        
-        // Read the opening parenthesis - skip whitespace first
         is >> std::ws;
         if (!is.get(ch) || ch != '(') {
-            // If no opening parenthesis, skip to next space and continue
             is.ignore(256, ' ');
             continue;
         }
-        
-        // Read the ref value - skip whitespace before reading ref
         is >> std::ws;
         if (!(is >> ref)) {
-            // If ref reading fails, skip to next closing parenthesis or space
             is.clear();
             is.ignore(256, ')');
             continue;
         }
         
-        // Read the closing parenthesis - skip whitespace first
         is >> std::ws;
         if (!is.get(ch) || ch != ')') {
-            // If no closing parenthesis, skip to next space and continue
             is.ignore(256, ' ');
             continue;
         }
         
-        // Insert the element
+
         Insert(data, ref);
     }
     
