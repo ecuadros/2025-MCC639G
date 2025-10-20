@@ -39,29 +39,29 @@ public:
 // TODO Activar el forward_iterator
 template <typename Container>
 class forward_double_linkedlist_iterator{
- private:
-     using value_type = typename Container::value_type;
-     using Node       = typename Container::Node;
-     // Diff
-     using iterator   = forward_double_linkedlist_iterator<Container>;
+using Node       = typename Container::Node;
+    private:
+    using value_type = typename Container::value_type;
+// Diff
+    using iterator   = forward_double_linkedlist_iterator<Container>;
 
-     Container *m_pList = nullptr;
-     Node      *m_pNode = nullptr;
- public:
-     forward_double_linkedlist_iterator(Container *pList, Node *pNode)
-             : m_pList(pList), m_pNode(pNode){}
-     forward_double_linkedlist_iterator(iterator &other)
-             : m_pList(other.m_pList), m_pNode(other.m_pNode){}   
-     bool operator==(iterator other){ return m_pList == other.m_pList && m_pNode == other.m_pNode; }
-     bool operator!=(iterator other){ return !(*this == other);    }
+    Container *m_pList = nullptr;
+    Node      *m_pNode = nullptr;
+public:
+    forward_double_linkedlist_iterator(Container *pList, Node *pNode)
+            : m_pList(pList), m_pNode(pNode){}
+    forward_double_linkedlist_iterator(iterator &other)
+            : m_pList(other.m_pList), m_pNode(other.m_pNode){}   
+    bool operator==(iterator other){ return m_pList == other.m_pList && m_pNode == other.m_pNode; }
+    bool operator!=(iterator other){ return !(*this == other);    }
 
-     // Diff
-     iterator operator++(){ 
-         if(m_pNode)
-             m_pNode = m_pNode->GetNext();
-         return *this;
-     }
-     value_type &operator*(){    return m_pNode->GetDataRef();   }
+    // Diff
+    iterator operator++(){ 
+        if(m_pNode)
+            m_pNode = m_pNode->GetNext();
+        return *this;
+    }
+    value_type &operator*(){    return m_pNode->GetDataRef();   }
 };
 
 template <typename Container>
@@ -151,6 +151,9 @@ public:
     
     // TODO: Read (istream &is)
     std::istream &Read (std::istream &is);
+    friend std::istream &operator>>(std::istream &is, CDoubleLinkedList<Traits> &list) {
+        return list.Read(is);
+        }
 };
 
 template <typename Traits>
@@ -223,7 +226,7 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
     m_fCompare = std::move(other.m_fCompare);
 }
 
-// TODO: Implementar y liberar la memoria de cada Node
+// TODO: Implementar y liberar la memoria de cada Node. DONE
 template <typename Traits>
 CDoubleLinkedList<Traits>::~CDoubleLinkedList()
 {
@@ -237,6 +240,71 @@ CDoubleLinkedList<Traits>::~CDoubleLinkedList()
     m_pTail = nullptr;
     m_nElem = 0;
 }
+
+// Read implementation
+template <typename Traits>
+std::istream &CDoubleLinkedList<Traits>::Read(std::istream &is)
+{
+    Node *current = m_pRoot;
+    while (current) {
+        Node *next = current->GetNext();
+        delete current;
+        current = next;
+    }
+    m_pRoot = nullptr;
+    m_pTail = nullptr;
+    m_nElem = 0;
+    char ch;
+    value_type data;
+    Ref ref;
+    
+    // Read until end of stream
+    while (is >> std::ws && is.peek() != EOF) {
+        // Read the data value
+        if (!(is >> data)) {
+            // Skip invalid characters and continue
+            is.clear();
+            is.ignore(1);
+            continue;
+        }
+        
+        // Read the opening parenthesis
+        is >> std::ws >> ch;
+        if (ch != '(') {
+            // Skip this malformed entry
+            is.ignore(256, ','); // Skip until next comma or end
+            continue;
+        }
+        
+        // Read the ref value
+        if (!(is >> ref)) {
+            // Skip this malformed entry
+            is.ignore(256, ','); // Skip until next comma or end
+            continue;
+        }
+        
+        // Read the closing parenthesis
+        is >> std::ws >> ch;
+        if (ch != ')') {
+            // Skip this malformed entry
+            is.ignore(256, ','); // Skip until next comma or end
+            continue;
+        }
+        
+        // Insert the element
+        Insert(data, ref);
+        
+        // Skip whitespace and check for comma
+        is >> std::ws;
+        if (is.peek() == ',') {
+            is.get(); // consume the comma
+        }
+    }
+    
+    return is;
+}
+
+
 
 // TODO: Este operador debe quedar fuera de la clase
 // template <typename Traits>

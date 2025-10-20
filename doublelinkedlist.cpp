@@ -36,4 +36,13 @@ void DemoDoubleLinkedList(){
     std::cout << "Actual Lista copiada: ";
     std::cout << lcopied << std::endl;
     std::cout << "\nDestructor Implemented\n";
+    
+    // read test
+    CDoubleLinkedList< AscendingTrait<T1> > lr;
+    std::cout<< "\nRead from file" << std::endl;
+    std::ifstream inFile("LL.txt");
+    inFile >> lr;
+    std::cout << "read DLL: ";
+    std::cout << lr<< std::endl;
+
 }
