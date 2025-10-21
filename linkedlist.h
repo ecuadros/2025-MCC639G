@@ -21,7 +21,7 @@ private:
 
 public:
     LLNode(Type &elem, Ref ref, LLNode<T> *pNext = nullptr)
-        : m_data(elem), m_pNext(pNext){
+        : m_data(elem), m_ref(ref), m_pNext(pNext){
     }
     Type   GetData()    { return m_data;     }
     Type  &GetDataRef() { return m_data;     }
@@ -57,11 +57,12 @@ public:
     // concurrent 
     void Insert(Type &elem, Ref ref);
     friend std::ostream& operator<< <T>(std::ostream& os, const CLinkedList<T>& list);
+    friend std::istream& operator>>    (std::istream &is, CLinkedList &list) {
+                                            return list.Read(is);
+                                            }
     std::istream &Read(std::istream &is);
     Node* GetHead(){ return m_pHead; }
-    friend std::istream &operator>>(std::istream &is, CLinkedList &list) {
-        return list.Read(is);
-    }
+
 private:
     // TODO: Implementar
     void InternalInsert(Node *&rParent, Type &elem, Ref ref);
@@ -85,8 +86,8 @@ std::ostream& operator<< (std::ostream &os, CLinkedList<T> &list){
     }
 
 
-template <typename Traits>
-std::istream &CLinkedList<Traits>::Read(std::istream &is)
+template <typename T>
+std::istream &CLinkedList<T>::Read(std::istream &is)
 {
     // Clear the existing list
     Node *current = m_pHead;
@@ -98,42 +99,38 @@ std::istream &CLinkedList<Traits>::Read(std::istream &is)
     m_pHead = nullptr;
 
     char ch;
-    Type data;
+    T data;  
     Ref ref;
     
-    // Read until end of stream
+    // Read stream
     while (is >> std::ws && is.peek() != EOF) {
-        // Read the data value
-        if (!(is >> data)) {
-            is.clear();
-            is.ignore(1);
-            continue;
+        if (!(is >> data)) { // rad data
+            break;
         }
+        
         is >> std::ws;
         if (!is.get(ch) || ch != '(') {
-            is.ignore(256, ' ');
-            continue;
+            break;
         }
-        is >> std::ws;
-        if (!(is >> ref)) {
-            is.clear();
-            is.ignore(256, ')');
-            continue;
+        
+        if (!(is >> ref)) { // read Ref
+            break;
         }
         
         is >> std::ws;
         if (!is.get(ch) || ch != ')') {
-            is.ignore(256, ' ');
-            continue;
+            break;
         }
         
-
+        // Insert value and ref
         Insert(data, ref);
+        
+        // Skip whitespace
+        is >> std::ws;
     }
     
     return is;
 }
-
 // copy constructor: DONE
 template <typename T>
 CLinkedList<T>::CLinkedList(CLinkedList &other) : m_pHead(nullptr)
