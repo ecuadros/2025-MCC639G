@@ -3,16 +3,16 @@
 #include <utility>
 #include "double_linked_list/DoubleLinkedListTraits.h"
 
-void test_singly_double_linked_list();
+void test_singly_binary_tree();
 
 int main() {
     std::cout << "--- Running All Test Suites ---" << std::endl;
-    test_singly_double_linked_list();
+    test_singly_binary_tree();
     std::cout << "\n--- All tests finished. ---" << std::endl;
     return 0;
 }
 
-void test_singly_double_linked_list() {
+void test_singly_binary_tree() {
     std::cout << "--- Testing Doubly Linked List (DoubleLinkedListTraits) ---" << std::endl;
 
     // --- I/O Test ---
