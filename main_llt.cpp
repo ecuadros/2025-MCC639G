@@ -9,7 +9,6 @@
 
 void test_singly_linked_list();
 void test_singly_linked_list_concurrency();
-void test_doubly_linked_list();
 
 int main() {
     std::cout << "--- Running All Test Suites ---" << std::endl;
