@@ -3,106 +3,118 @@
 
 #include <ostream>
 #include <istream>
-#include <utility> // For std::move
+#include <mutex>
+#include <utility>
 #include "LinkedListTraitsNode.h"
 #include "LinkedListTraitsIterator.h"
 
 template <typename T>
 class LinkedListTraits {
 public:
-    typedef LinkedListTraitsNode<T> node_type;
-    typedef node_type* node_pointer;
+    using node_type = LinkedListTraitsNode<T>;
+    using node_pointer = node_type*;
 
-    typedef typename node_type::value_type value_type;
-    typedef typename node_type::reference_type reference_type;
-    typedef typename node_type::const_reference_type const_reference_type;
+    using value_type = typename node_type::value_type;
+    using reference_type = typename node_type::reference_type;
+    using const_reference_type = typename node_type::const_reference_type;
 
-    typedef LinkedListTraitsIterator<T> iterator;
+    using iterator = LinkedListTraitsIterator<T>;
 
-    LinkedListTraits() : m_head(nullptr), m_tail(nullptr) {}
+    LinkedListTraits() : m_head(nullptr), m_tail(nullptr), m_size(0) {}
 
-    LinkedListTraits(const LinkedListTraits& other) : m_head(nullptr), m_tail(nullptr) {
-        for (const auto& value : other) {
+    LinkedListTraits(const LinkedListTraits& other)
+        : m_head(nullptr), m_tail(nullptr), m_size(0)
+    {
+        std::lock_guard<std::mutex> lock(other.m_mutex);
+        // No need to copy size, the add() method will increment it
+        for (const auto& value : other)
             add(value);
-        }
     }
 
     LinkedListTraits& operator=(const LinkedListTraits& other) {
         if (this != &other) {
+            std::scoped_lock lock(m_mutex, other.m_mutex);
             clear();
-            for (const auto& value : other) {
+            for (const auto& value : other)
                 add(value);
-            }
         }
         return *this;
     }
 
-    LinkedListTraits(LinkedListTraits&& other) noexcept : m_head(other.m_head), m_tail(other.m_tail) {
-        other.m_head = nullptr;
-        other.m_tail = nullptr;
-    }
+    LinkedListTraits(LinkedListTraits&& other) noexcept
+        : m_head(std::exchange(other.m_head, nullptr)),
+          m_tail(std::exchange(other.m_tail, nullptr)),
+          m_size(std::exchange(other.m_size, 0))
+    {}
 
     LinkedListTraits& operator=(LinkedListTraits&& other) noexcept {
         if (this != &other) {
-            clear(); // Free existing resources
-            m_head = other.m_head;
-            m_tail = other.m_tail;
-            other.m_head = nullptr;
-            other.m_tail = nullptr;
+            std::scoped_lock lock(m_mutex, other.m_mutex);
+            clear();
+            // Steal the resources from the other object
+            m_head = std::exchange(other.m_head, nullptr);
+            m_tail = std::exchange(other.m_tail, nullptr);
+            m_size = std::exchange(other.m_size, 0);
         }
         return *this;
     }
 
     ~LinkedListTraits() {
         clear();
+        std::cout << "[Debug] LinkedListTraits destructor called." << std::endl;
     }
 
     void add(value_type info) {
-        if (m_head == nullptr) {
-            m_head = new node_type(info);
-            m_tail = m_head;
+        std::lock_guard<std::mutex> lock(m_mutex);
+        node_pointer new_node = new node_type(std::move(info));
+
+        if (!m_head) {
+            m_head = new_node;
+            m_tail = new_node;
         } else {
-            m_tail->set_next(new node_type(info));
-            m_tail = m_tail->next();
+            m_tail->set_next(new_node);
+            m_tail = new_node;
         }
+        ++m_size;
     }
 
-    iterator begin() const {
-        return iterator(m_head);
-    }
+    iterator begin() const noexcept { return iterator(m_head); }
+    iterator end() const noexcept { return iterator(nullptr); }
 
-    iterator end() const {
-        return iterator(nullptr);
-    }
+    size_t size() const noexcept { return m_size; }
 
     friend std::ostream& operator<<(std::ostream& os, const LinkedListTraits<T>& list) {
-        for (const auto& value : list) {
+        std::lock_guard<std::mutex> lock(list.m_mutex);
+        for (const auto& value : list)
             os << value << " ";
-        }
         return os;
     }
 
     friend std::istream& operator>>(std::istream& is, LinkedListTraits<T>& list) {
         value_type value;
-        while (is >> value) {
-            list.add(value);
-        }
+        while (is >> value)
+            list.add(std::move(value));
         return is;
     }
 
 private:
-    void clear() {
-        for (node_pointer it = m_head; it != nullptr;) {
-            node_pointer next = it->next();
-            delete it;
-            it = next;
+    void clear() noexcept {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        node_pointer current = m_head;
+        while (current) {
+            node_pointer next = current->next();
+            delete current;
+            current = next;
         }
         m_head = nullptr;
         m_tail = nullptr;
+        m_size = 0;
     }
 
+    mutable std::mutex m_mutex;
     node_pointer m_head;
     node_pointer m_tail;
+    size_t m_size;
 };
 
 #endif // LINKED_LIST_TRAITS_H

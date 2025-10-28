@@ -1,28 +1,53 @@
 #ifndef LINKED_LIST_TRAITS_NODE_H
 #define LINKED_LIST_TRAITS_NODE_H
 
+#include <utility>
+
 template <typename T>
 class LinkedListTraitsNode {
 public:
-    typedef T value_type;
-    typedef T& reference_type;
-    typedef const T& const_reference_type;
-    typedef T* pointer_type;
-    typedef const T* const_pointer_type;
+    using value_type            = T;
+    using reference_type        = T&;
+    using const_reference_type  = const T&;
+    using pointer_type          = T*;
+    using const_pointer_type    = const T*;
+    using node_type             = LinkedListTraitsNode<T>;
+    using node_pointer          = node_type*;
 
-    LinkedListTraitsNode(value_type info) : m_value(info), m_next(nullptr) {}
+    LinkedListTraitsNode() noexcept
+        : m_value{}, m_next(nullptr) {}
 
-    reference_type value() { return m_value; }
-    const_reference_type value() const { return m_value; }
+    explicit LinkedListTraitsNode(const value_type& info)
+        : m_value(info), m_next(nullptr) {}
 
-    LinkedListTraitsNode* next() { return m_next; }
-    const LinkedListTraitsNode* next() const { return m_next; }
+    explicit LinkedListTraitsNode(value_type&& info) noexcept
+        : m_value(std::move(info)), m_next(nullptr) {}
 
-    void set_next(LinkedListTraitsNode* next) { m_next = next; }
+    LinkedListTraitsNode(const LinkedListTraitsNode&) = delete;
+    LinkedListTraitsNode& operator=(const LinkedListTraitsNode&) = delete;
+
+    LinkedListTraitsNode(LinkedListTraitsNode&& other) noexcept
+        : m_value(std::move(other.m_value)), m_next(std::exchange(other.m_next, nullptr)) {}
+
+    LinkedListTraitsNode& operator=(LinkedListTraitsNode&& other) noexcept {
+        if (this != &other) {
+            m_value = std::move(other.m_value);
+            m_next = std::exchange(other.m_next, nullptr);
+        }
+        return *this;
+    }
+
+    reference_type value() noexcept { return m_value; }
+    const_reference_type value() const noexcept { return m_value; }
+
+    node_pointer next() noexcept { return m_next; }
+    const node_pointer next() const noexcept { return m_next; }
+
+    void set_next(node_pointer next) noexcept { m_next = next; }
 
 private:
     value_type m_value;
-    LinkedListTraitsNode* m_next;
+    node_pointer m_next;
 };
 
 #endif // LINKED_LIST_TRAITS_NODE_H

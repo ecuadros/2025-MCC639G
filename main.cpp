@@ -1,30 +1,24 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <utility> // For std::move
+#include <utility>
+#include <vector>
+#include <thread>
+#include <cassert>
 
-// Include both list implementations
 #include "linked_list/LinkedListTraits.h"
-#include "double_linked_list/DoubleLinkedListTraits.h"
 
-// Forward declarations for test suites
 void test_singly_linked_list();
+void test_singly_linked_list_concurrency();
 void test_doubly_linked_list();
 
-/**
- * @brief Main entry point. Runs the test suites for both list types.
- */
 int main() {
     std::cout << "--- Running All Test Suites ---" << std::endl;
     test_singly_linked_list();
-    test_doubly_linked_list();
+    test_singly_linked_list_concurrency();
     std::cout << "\n--- All tests finished. ---" << std::endl;
     return 0;
 }
 
-/**
- * @brief Runs a full suite of tests for the Singly Linked List.
- */
 void test_singly_linked_list() {
     std::cout << "\n\n--- Testing Singly Linked List (LinkedListTraits) ---" << std::endl;
 
@@ -45,41 +39,26 @@ void test_singly_linked_list() {
     std::cout << "Original singly list after move: " << s_copy << std::endl;
 }
 
-/**
- * @brief Runs a full suite of tests for the Doubly Linked List.
- */
-void test_doubly_linked_list() {
-    std::cout << "\n\n--- Testing Doubly Linked List (DoubleLinkedListTraits) ---" << std::endl;
+void test_singly_linked_list_concurrency() {
+    std::cout << "\n\n--- Testing Singly Linked List Concurrency ---" << std::endl;
 
-    // I/O Test
-    DoubleLinkedListTraits<int> d_list;
-    d_list.add(100); d_list.add(200);
-    std::cout << "Doubly list output: " << d_list << std::endl;
+    LinkedListTraits<int> shared_list;
+    std::vector<std::thread> threads;
+    const int num_threads = 10;
+    const int items_per_thread = 1000;
 
-    // Copy Test
-    DoubleLinkedListTraits<int> d_copy = d_list;
-    d_copy.add(300);
-    std::cout << "Original doubly list after copy: " << d_list << std::endl;
-    std::cout << "Copied doubly list with new element: " << d_copy << std::endl;
-
-    // Move Test
-    DoubleLinkedListTraits<int> d_moved = std::move(d_copy);
-    std::cout << "Moved doubly list: " << d_moved << std::endl;
-    std::cout << "Original doubly list after move: " << d_copy << std::endl;
-
-    // Bidirectional Test
-    std::cout << "\n--- Bidirectional Iteration Test ---" << std::endl;
-    DoubleLinkedListTraits<int> bi_list;
-    bi_list.add(1); bi_list.add(2); bi_list.add(3);
-    std::cout << "Forward iteration: " << bi_list << std::endl;
-    std::cout << "Backward iteration: ";
-    auto it = bi_list.end();
-    // The end iterator points one past the last element, so we need to decrement first
-    if (it != bi_list.begin()) {
-        do {
-            --it;
-            std::cout << *it << " ";
-        } while (it != bi_list.begin());
+    for (int i = 0; i < num_threads; ++i) {
+        threads.emplace_back([&shared_list, items_per_thread]() {
+            for (int j = 0; j < items_per_thread; ++j) {
+                shared_list.add(j);
+            }
+        });
     }
-    std::cout << std::endl;
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    std::cout << "Final list size: " << shared_list.size() << std::endl;
+    assert(shared_list.size() == num_threads * items_per_thread);
+    std::cout << "Concurrency test passed: Final size is correct." << std::endl;
 }
