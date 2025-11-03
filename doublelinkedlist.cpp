@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <utility> // para std::pair
+#include <thread>
 #include "linkedlist.h"
 #include "doublelinkedlist.h"
 #include "foreach.h"
@@ -44,5 +45,22 @@ void DemoDoubleLinkedList(){
     inFile >> lr;
     std::cout << "read DLL: ";
     std::cout << lr<< std::endl;
+    
+    // concurrent dll
+    std::cout << "\nConcurrent DLL Test\n"<< std::endl;
+    std::vector<std::thread> threads;
+    CDoubleLinkedList< AscendingTrait<T1> >  lc;
+    for (int i=0; i<10; i++){
+        threads.emplace_back([&lc, i](){
+            int value = i*5;
+            Ref ref   = i;
+            lc.Insert(value, ref);
+            std::cout << "Thread " << i << " -> Inserted: " << value << std::endl;
+        });
+    }
+    for (auto& t : threads) { t.join(); }
+
+    std::cout << "Final list" << lc << std::endl;
+    std::cout << "Test End" << std::endl;
 
 }

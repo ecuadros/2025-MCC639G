@@ -1,6 +1,8 @@
 #ifndef __DOUBLELINKEDLIST_H__
 #define __DOUBLELINKEDLIST_H__
 #include <iostream>
+#include <shared_mutex>
+#include <mutex>
 #include "types.h"
 #include "traits.h"
 
@@ -10,7 +12,6 @@ private:
     using    value_type = typename Traits::value_type;
     using    Node       = DLLNode<Traits>;
 
-    // Fields go here
     value_type          m_data;
     Ref                 m_ref;
     Node               *m_pNext = nullptr;
@@ -28,7 +29,7 @@ public:
     // Diff
     void   SetNext(Node *pNext){    m_pNext = pNext; }
 
-    // Particular para la double LinkedList
+    // 
     Node * GetPrev()    { return m_pPrev;    }
     Node *&GetPrevRef() { return m_pPrev;    }
     // Diff
@@ -111,13 +112,14 @@ private:
     Node   *m_pTail = nullptr;
     size_t m_nElem = 0;
     Func   m_fCompare;
+    mutable std::shared_mutex m_mutex;
 
 public:
     // Constructor
     CDoubleLinkedList();
     CDoubleLinkedList(CDoubleLinkedList &other);
 
-    // TODO: Done
+    // TODO: Doneppppppppppppppooo55555555555555555555555
     CDoubleLinkedList(CDoubleLinkedList &&other);
 
     // Destructor seguro
@@ -138,6 +140,7 @@ public:
     backward_iterator rend()  { return backward_iterator(this, nullptr); } 
 
     friend std::ostream& operator<<(std::ostream &os, CDoubleLinkedList<Traits> &obj){
+        std::shared_lock lock(obj.m_mutex);
         auto pRoot = obj.GetRoot();
         while( pRoot ){
             os << pRoot->GetData() << "(" << pRoot->GetRef() << ") ";
@@ -147,7 +150,10 @@ public:
     }
 public:
     // Persistence
-    std::ostream &Write(std::ostream &os) { return os << *this; }
+    std::ostream &Write(std::ostream &os) { 
+        std::shared_lock lock(m_mutex);    
+        return os << *this; 
+    }
     
     // TODO: Read (istream &is)
     std::istream &Read (std::istream &is);
@@ -158,6 +164,7 @@ public:
 
 template <typename Traits>
 void CDoubleLinkedList<Traits>::Insert(value_type &elem, Ref ref){
+    std::unique_lock lock(m_mutex);
     InternalInsert(m_pRoot, elem, ref);
 }
 
@@ -192,6 +199,7 @@ template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other) 
     : m_pRoot(nullptr), m_pTail(nullptr), m_nElem(0), m_fCompare(other.m_fCompare)
 {
+    std::unique_lock lock(m_mutex);
     if (!other.m_pRoot) { // empty contdition
         return;
     }
@@ -224,12 +232,14 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
     m_pRoot    = std::move(other.m_pRoot);
     m_nElem    = std::move(other.m_nElem);
     m_fCompare = std::move(other.m_fCompare);
+    std::unique_lock lock(m_mutex);
 }
 
 // TODO: Implementar y liberar la memoria de cada Node. DONE
 template <typename Traits>
 CDoubleLinkedList<Traits>::~CDoubleLinkedList()
 {
+    std::unique_lock lock(m_mutex);
     Node *current = m_pRoot;
     while (current) {
         Node *next = current->GetNext();
@@ -245,6 +255,7 @@ CDoubleLinkedList<Traits>::~CDoubleLinkedList()
 template <typename Traits>
 std::istream &CDoubleLinkedList<Traits>::Read(std::istream &is)
 {
+    //std::unique_lock lock(m_mutex);
     Node *current = m_pRoot;
     while (current) {
         Node *next = current->GetNext();
@@ -258,10 +269,9 @@ std::istream &CDoubleLinkedList<Traits>::Read(std::istream &is)
     value_type data;
     Ref ref;
     
-
-    while (is >> std::ws && is.peek() != EOF) {
+    while (is >> std::ws && is.peek() != EOF){
         // Read the data value
-        if (!(is >> data)) {
+        if (!(is >> data)){
             // Skip invalid characters and continue
             is.clear();
             is.ignore(1);
