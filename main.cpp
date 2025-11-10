@@ -5,7 +5,8 @@
 #include "linkedlist.h"
 #include "doublelinkedlist.h"
 #include "pointers.h"
-// #include "vector.h"
+#include "container.h"
+#include "clasestemplate.h"
 
 using namespace std;
 
@@ -31,8 +32,9 @@ int main(){
     // DemoClasesTemplate();
     // DemoBasicPointers();
 
-    // DemoVector();
-    
+
+    DemoClasesTemplate();
+    DemoVector();    
     DemoLinkedList();
     DemoDoubleLinkedList();
 

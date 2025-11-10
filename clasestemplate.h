@@ -1,11 +1,10 @@
-
 #ifndef __CLASES_TEMPLATE_H__
 #define __CLASES_TEMPLATE_H__
+
 #include <iostream>
-void DemoClasesTemplate();
+#include <string>
 
-using namespace std;
-
+// Eliminar using namespace std; de headers
 template <typename T>
 class CTest{
 private:
@@ -22,7 +21,10 @@ CTest<T>::CTest(T var){
 
 template <typename T>
 void CTest<T>::Print(){
-    cout << m_var << endl;
+    std::cout << m_var << std::endl;
 }
+
+// Declaración de la función demo
+void DemoClasesTemplate();
 
 #endif // __CLASES_TEMPLATE_H__
