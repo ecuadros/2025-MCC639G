@@ -1,7 +1,12 @@
 #ifndef __LINKEDLIST_H__
 #define __LINKEDLIST_H__
 #include <iostream>
+#include <thread>
+#include <mutex>
+#include <vector>
 #include "types.h"
+
+using namespace std;
 
 template <typename T>
 class LLNode{
@@ -27,8 +32,9 @@ template <typename T>
 class CLinkedList{
 private:
     using Type = T; 
-    using Node = LLNode<Type>; 
+    using Node = LLNode<Type>;
     Node *m_pRoot = nullptr;
+    std::mutex m_mutex;
 public:
     // Constructor
     CLinkedList();
@@ -44,6 +50,25 @@ public:
     void Insert(Type &elem, Ref ref);
 
     bool IsEmpty() const { return m_pRoot == nullptr; }
+
+    // Nueva función: Leer desde stream
+    void Read(std::istream &is);
+    
+    // Limpiar la lista
+    void Clear();
+
+    int GetSize() const {
+        int count = 0;
+        Node* current = m_pRoot;
+        while (current) {
+            count++;
+            current = current->GetNext();
+        }
+        return count;
+    }
+
+    
+
 private:
     // TODO: Implementar
     void InternalInsert(Node *&rParent, Type &elem, Ref ref);
@@ -51,10 +76,57 @@ private:
     
     template <typename U>
     friend std::ostream& operator<<(std::ostream &os, CLinkedList<U> &obj);
+
+    template <typename U>
+    friend std::istream& operator>>(std::istream &is, CLinkedList<U> &obj);
 };
 
 template <typename T>
+void CLinkedList<T>::Clear() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    while (m_pRoot != nullptr) {
+        Node* temp = m_pRoot;
+        m_pRoot = m_pRoot->GetNext();
+        delete temp;
+    }
+}
+
+
+template <typename T>
+void CLinkedList<T>::Read(std::istream &is) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+       
+    while (m_pRoot != nullptr) {
+        Node* temp = m_pRoot;
+        m_pRoot = m_pRoot->GetNext();
+        delete temp;
+    }
+
+ 
+    Type elem;
+    Ref ref;
+    
+    int count = 0;
+    while (is >> elem >> ref) {
+        cout << "Insertando " << elem << "(" << ref << ")" << endl;
+        InternalInsert(m_pRoot, elem, ref);
+        count++;
+    }
+    
+    cout << "Read() completado. Pares leídos: " << count << endl;
+}
+
+// Sobrecarga del operador >> para facilitar la lectura
+template <typename T>
+std::istream& operator>>(std::istream &is, CLinkedList<T> &obj) {
+    obj.Read(is);
+    return is;
+}
+
+
+template <typename T>
 void CLinkedList<T>::Insert(Type &elem, Ref ref){
+    std::lock_guard<std::mutex> lock(m_mutex);
     InternalInsert(m_pRoot, elem, ref);
 }
 
@@ -117,7 +189,7 @@ CLinkedList<T>::~CLinkedList()
     {
         /* code */
         Node* next = current->GetNext(); //Guardar referencia al siguiente
-        delete current; //liberar nod actual
+        delete current; //liberar nodo actual
         current = next; //Avanzar al siguiente
 
     }
@@ -127,16 +199,17 @@ CLinkedList<T>::~CLinkedList()
 }
 
 template <typename T>
-std::ostream &operator<<(std::ostream &os, CLinkedList<T> &obj){
-    auto pRoot = obj.GetRoot();
-    while( pRoot ){
-        os << pRoot->GetData() << " ";
-        pRoot = pRoot->GetNext();
+std::ostream& operator<<(std::ostream &os, CLinkedList<T> &obj) {
+    typename CLinkedList<T>::Node* current = obj.m_pRoot;
+    while (current != nullptr) {
+        os << current->GetData() << " ";
+        current = current->GetNext();
     }
-        
     return os;
 }
 
 void DemoLinkedList();
+void SimpleConcurrencyTest();
+void TestReadFunction();
 
 #endif // __LINKEDLIST_H__

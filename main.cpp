@@ -29,5 +29,7 @@ int main(){
     // DemoBasicPointers();
     
     DemoLinkedList();
+    SimpleConcurrencyTest();
+    TestReadFunction();
     return 0;
 }
