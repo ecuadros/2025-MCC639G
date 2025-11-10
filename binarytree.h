@@ -56,7 +56,6 @@ public:
     vector<Node*> m_pChild;
 
 public:
-    // CORREGIDO: Orden correcto de inicialización
     CBinaryTreeNode(Node* pParent, value_type data, Ref ref, 
                    Node* p0 = nullptr, Node* p1 = nullptr) 
         : m_data(data), m_pParent(pParent), m_ref(ref), m_pChild(2, nullptr) {
