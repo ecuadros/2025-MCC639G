@@ -7,14 +7,10 @@ SRCS = main.cpp \
 	test.cpp  util.cpp \
 	clasestemplate.cpp \
 	pointers.cpp \
-	ContainersDemo.cpp \
-	vector.cpp \
-	linkedlist.cpp \
+	binarytree.cpp \
 	
-#doublelinkedlist.cpp
+	
 
-	   	
-#>>>>>>> 817223c (implementando copy constructor)
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(TARGET)
