@@ -15,43 +15,43 @@
  *    - trait_less<Trait, T>::type    -> comparador (por defecto std::less<T>)
  * ============================================================ */
 template <typename Trait, typename = void>
-struct trait_value_type {};
+class trait_value_type {};
 
 template <typename Trait>
-struct trait_value_type<Trait, std::void_t<typename Trait::type>> {
+class trait_value_type<Trait, std::void_t<typename Trait::type>> {
     using type = typename Trait::type;
 };
 
 template <typename Trait>
-struct trait_value_type<Trait, std::void_t<typename Trait::ValueType>> {
+class trait_value_type<Trait, std::void_t<typename Trait::ValueType>> {
     using type = typename Trait::ValueType;
 };
 
 template <typename Trait>
-struct trait_value_type<Trait, std::void_t<typename Trait::T>> {
+class trait_value_type<Trait, std::void_t<typename Trait::T>> {
     using type = typename Trait::T;
 };
 
 template <template<class> class TraitTmpl, class U>
-struct trait_value_type<TraitTmpl<U>, void> {
+class trait_value_type<TraitTmpl<U>, void> {
     using type = U;
 };
 
 template <typename Trait, typename T, typename = void>
-struct trait_less { using type = std::less<T>; };
+class trait_less { using type = std::less<T>; };
 
 template <typename Trait, typename T>
-struct trait_less<Trait, T, std::void_t<typename Trait::less>> {
+class trait_less<Trait, T, std::void_t<typename Trait::less>> {
     using type = typename Trait::less;
 };
 
 template <typename Trait, typename T>
-struct trait_less<Trait, T, std::void_t<typename Trait::Less>> {
+class trait_less<Trait, T, std::void_t<typename Trait::Less>> {
     using type = typename Trait::Less;
 };
 
 template <typename Trait, typename T>
-struct trait_less<Trait, T, std::void_t<typename Trait::Compare>> {
+class trait_less<Trait, T, std::void_t<typename Trait::Compare>> {
     using type = typename Trait::Compare;
 };
 
@@ -61,13 +61,13 @@ struct trait_less<Trait, T, std::void_t<typename Trait::Compare>> {
  *    LLinkedListDesc<T> -> orden descendente (std::greater)
  * ============================================================ */
 template <class T>
-struct LLinkedListAsc {
+class LLinkedListAsc {
     using type = T;
     using less = std::less<T>;
 };
 
 template <class T>
-struct LLinkedListDesc {
+class LLinkedListDesc {
     using type = T;
     using less = std::greater<T>;
 };
@@ -85,7 +85,7 @@ public:
     using comparator = typename trait_less<Traits, value_type>::type;
 
 private:
-    struct Node {
+    Class Node {
         value_type value;
         Node* next;
         explicit Node(const value_type& v, Node* n=nullptr) : value(v), next(n) {}
