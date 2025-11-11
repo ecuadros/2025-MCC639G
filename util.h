@@ -1,18 +1,11 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
-#include <iostream> // cout
-using namespace std;
 
-void DemoUtil();
+#include <iostream>
 
 template <typename T>
-void intercambio(T &a, T &b){
-    T tmp = a;
-    a = b;
-    b = tmp;
+void Print(const T& value) {
+    std::cout << value << " ";
 }
 
-template <typename T>
-void Print(T &n){   cout << n << " "; }
-
-#endif
+#endif // __UTIL_H__

@@ -3,13 +3,11 @@ CXXFLAGS = -std=c++17 -Wall -g -pthread # Añadido -pthread
 LDFLAGS = -pthread # Añadido -pthread
 
 TARGET = main
-SRCS = main.cpp \
-	   test.cpp  util.cpp \
-	   clasestemplate.cpp \
-	   pointers.cpp \
-	   ContainersDemo.cpp \
-	   vector.cpp
+SRCS = main.cpp binarytree.cpp avl.cpp util.cpp
+
 OBJS = $(SRCS:.cpp=.o)
+
+HEADERS = binarytree.h avl.h traits.h types.h foreach.h util.h
 
 all: $(TARGET)
 

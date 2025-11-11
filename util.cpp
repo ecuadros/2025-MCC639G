@@ -1,15 +1,26 @@
-#include <iostream>
-#include "util.h" 
-using namespace std;
+#include "util.h"
+#include <sstream>
+#include <iomanip>
+#include <chrono>
+#include <mutex>
 
-void DemoUtil(){
-    int x = 5, y = 8;
-    cout << "x=" << x << " y=" << y << endl;
-    intercambio(x, y);
-    cout << "x=" << x << " y=" << y << endl;
+using namespace std;
+using namespace std::chrono;
+
+mutex logMutex;
+
+string getCurrentTimestamp() {
+    auto now = system_clock::now();
+    auto time_t_now = system_clock::to_time_t(now);
+    auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
     
-    float k = 3, i = 4;
-    cout << "k=" << k << " i=" << i << endl;
-    intercambio(k, i);
-    cout << "k=" << k << " i=" << i << endl;
+    stringstream ss;
+    ss << put_time(localtime(&time_t_now), "%H:%M:%S");
+    ss << "." << setfill('0') << setw(3) << ms.count();
+    return ss.str();
+}
+
+void logMessage(const string& message) {
+    lock_guard<mutex> lock(logMutex);
+    cout << message << endl;
 }
