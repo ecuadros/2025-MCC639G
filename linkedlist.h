@@ -85,7 +85,7 @@ public:
     using comparator = typename trait_less<Traits, value_type>::type;
 
 private:
-    Class Node {
+    class Node {
         value_type value;
         Node* next;
         explicit Node(const value_type& v, Node* n=nullptr) : value(v), next(n) {}
