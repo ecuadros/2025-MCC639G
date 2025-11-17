@@ -69,6 +69,9 @@ class forward_linkedlist_iterator{
 
 // TODO Agregar control de concurrencia
 
+
+
+
 // TODO Agregar que sea ascendente o descendente con el mismo codigo
 template <typename Traits>
 class CLinkedList{
@@ -134,29 +137,67 @@ CLinkedList<Traits>::CLinkedList(){}
 
 // TODO Constructor por copia
 //      Hacer loop copiando cada elemento
+//     Ojo en concurrencia usar locks std::scoped_lock
 template <typename Traits>
-CLinkedList<Traits>::CLinkedList(CLinkedList &other){
+CLinkedList<Traits>::CLinkedList(CLinkedList &other)
+{
+    m_pRoot = nullptr;
+    m_nElem = 0;
+    m_fCompare = other.m_fCompare;
+
+    if (!other.m_pRoot) return; // lista vacía
+
+    Node *pOtherCurrent = other.m_pRoot;
+
+    // Copiar primer nodo
+    m_pRoot = new Node(pOtherCurrent->GetDataRef(),
+                       pOtherCurrent->GetRef());
+
+    Node *pCurrent = m_pRoot;
+    pOtherCurrent  = pOtherCurrent->GetNext();
+    m_nElem++;
+
+    // Copiar nodos restantes
+    while (pOtherCurrent) {
+        pCurrent->GetNextRef() = new Node(pOtherCurrent->GetDataRef(),
+                                          pOtherCurrent->GetRef());
+        pCurrent      = pCurrent->GetNext();
+        pOtherCurrent = pOtherCurrent->GetNext();
+        m_nElem++;
+    }
 }
 
 // Move Constructor
 template <typename Traits>
 CLinkedList<Traits>::CLinkedList(CLinkedList &&other){
-    m_pRoot    = std::move(other.m_pRoot);
-    m_nElem    = std::move(other.m_nElem);
+    m_pRoot    = std::exchange(other.m_pRoot, nullptr);
+    m_nElem    = std::exchange(other.m_nElem, 0);
     m_fCompare = std::move(other.m_fCompare);
 }
 
+// TODO Destructor seguro
 template <typename Traits>
 CLinkedList<Traits>::~CLinkedList()
 {
+    Node *current = m_pRoot;
+    while (current != nullptr) {
+        Node *next = current->GetNext();
+        delete current;
+        current = next;
+    }
+    m_pRoot = nullptr;
+    m_nElem = 0;
 }
 
 // TODO: Este operador debe quedar fuera de a clase
 template <typename Traits>
-std::ostream &operator<<(std::ostream &os, CLinkedList<Traits> &obj){
+std::ostream &operator<<(std::ostream &os, const CLinkedList<Traits> &obj){
     auto pRoot = obj.GetRoot();
-    while( pRoot )
-        os << pRoot->GetData() << " ";
+    while (pRoot){
+        os << pRoot->GetData() 
+           << "(" << pRoot->GetRef() << ") ";
+        pRoot = pRoot->GetNext();
+    }
     return os;
 }
 

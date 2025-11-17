@@ -7,8 +7,7 @@ SRCS = main.cpp \
 	   test.cpp  util.cpp \
 	   clasestemplate.cpp \
 	   pointers.cpp \
-	   linkedlist.cpp \
-	   vector.cpp
+	   linkedlist.cpp 
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(TARGET)

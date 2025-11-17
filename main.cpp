@@ -4,6 +4,9 @@
 #include "clasestemplate.h"
 #include "linkedlist.h"
 #include "pointers.h"
+#include "concurrent.h"
+
+
 // #include "vector.h"
 
 using namespace std;
@@ -33,5 +36,6 @@ int main(){
     // DemoVector();
     
     DemoLinkedList();
+    //TestConcurrency();
     return 0;
 }
