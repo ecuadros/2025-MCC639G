@@ -7,7 +7,9 @@
 #include <cassert>
 
 void test_traversals_and_io();
+
 void test_copy_and_move();
+
 void test_concurrency();
 
 int main() {
@@ -19,15 +21,18 @@ int main() {
     return 0;
 }
 
-using MyAVLTree = AVLTree<AVLTreeTraits<int>>;
+using MyAVLTree = AVLTree<AVLTreeTraits<int> >;
 
 void test_traversals_and_io() {
     std::cout << "\n--- Testing Traversals, Balancing, and I/O ---" << std::endl;
     MyAVLTree tree;
-    
+
     std::cout << "Inserting 10, 20, 30, 40, 50..." << std::endl;
-    tree.insert(10); tree.insert(20); tree.insert(30);
-    tree.insert(40); tree.insert(50);
+    tree.insert(10);
+    tree.insert(20);
+    tree.insert(30);
+    tree.insert(40);
+    tree.insert(50);
 
     std::cout << "In-order traversal (after balancing): " << tree << std::endl;
 
@@ -41,10 +46,12 @@ void test_traversals_and_io() {
 void test_copy_and_move() {
     std::cout << "\n--- Testing Copy and Move Semantics ---" << std::endl;
     MyAVLTree tree;
-    tree.insert(50); tree.insert(30); tree.insert(70);
+    tree.insert(50);
+    tree.insert(30);
+    tree.insert(70);
 
     std::cout << "Original tree: " << tree << std::endl;
-    
+
     MyAVLTree copied_tree = tree;
     std::cout << "Copied (via constructor): " << copied_tree << std::endl;
 
@@ -63,7 +70,7 @@ void test_copy_and_move() {
 }
 
 // Helper for concurrency test
-void insert_range_avl(MyAVLTree& tree, int start, int end) {
+void insert_range_avl(MyAVLTree &tree, int start, int end) {
     for (int i = start; i < end; ++i) {
         tree.insert(i);
     }
@@ -76,14 +83,14 @@ void test_concurrency() {
     const int num_per_thread = 2500;
 
     std::vector<std::thread> threads;
-    std::cout << "Starting " << num_threads << " threads to insert " 
-              << num_per_thread << " elements each..." << std::endl;
+    std::cout << "Starting " << num_threads << " threads to insert "
+            << num_per_thread << " elements each..." << std::endl;
 
     for (int i = 0; i < num_threads; ++i) {
         threads.emplace_back(insert_range_avl, std::ref(concurrent_tree), i * num_per_thread, (i + 1) * num_per_thread);
     }
 
-    for (auto& t : threads) {
+    for (auto &t: threads) {
         t.join();
     }
 

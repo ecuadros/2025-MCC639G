@@ -9,7 +9,9 @@
 const size_t B_TREE_ORDER = 3;
 
 void test_traversals_and_io();
+
 void test_copy_and_move();
+
 void test_concurrency();
 
 int main() {
@@ -21,14 +23,14 @@ int main() {
     return 0;
 }
 
-using MyBTree = BTree<BTreeTraits<int, B_TREE_ORDER>>;
+using MyBTree = BTree<BTreeTraits<int, B_TREE_ORDER> >;
 
 void test_traversals_and_io() {
     std::cout << "\n--- Testing Traversals, Splitting, and I/O ---" << std::endl;
     MyBTree tree;
-    
+
     std::cout << "Inserting 10, 20, 30, 40, 50, 60... (will trigger splits)" << std::endl;
-    for(int i = 1; i <= 6; ++i) tree.insert(i * 10);
+    for (int i = 1; i <= 6; ++i) tree.insert(i * 10);
 
     std::cout << "In-order traversal (using iterator): " << tree << std::endl;
 
@@ -42,10 +44,12 @@ void test_traversals_and_io() {
 void test_copy_and_move() {
     std::cout << "\n--- Testing Copy and Move Semantics ---" << std::endl;
     MyBTree tree;
-    tree.insert(50); tree.insert(30); tree.insert(70);
+    tree.insert(50);
+    tree.insert(30);
+    tree.insert(70);
 
     std::cout << "Original tree: " << tree << std::endl;
-    
+
     MyBTree copied_tree = tree;
     std::cout << "Copied (via constructor): " << copied_tree << std::endl;
 
@@ -64,7 +68,7 @@ void test_copy_and_move() {
 }
 
 // Helper for concurrency test
-void insert_range_b_tree(MyBTree& tree, int start, int end) {
+void insert_range_b_tree(MyBTree &tree, int start, int end) {
     for (int i = start; i < end; ++i) {
         tree.insert(i);
     }
@@ -77,14 +81,15 @@ void test_concurrency() {
     const int num_per_thread = 100;
 
     std::vector<std::thread> threads;
-    std::cout << "Starting " << num_threads << " threads to insert " 
-              << num_per_thread << " elements each..." << std::endl;
+    std::cout << "Starting " << num_threads << " threads to insert "
+            << num_per_thread << " elements each..." << std::endl;
 
     for (int i = 0; i < num_threads; ++i) {
-        threads.emplace_back(insert_range_b_tree, std::ref(concurrent_tree), i * num_per_thread, (i + 1) * num_per_thread);
+        threads.emplace_back(insert_range_b_tree, std::ref(concurrent_tree), i * num_per_thread,
+                             (i + 1) * num_per_thread);
     }
 
-    for (auto& t : threads) {
+    for (auto &t: threads) {
         t.join();
     }
 

@@ -7,7 +7,9 @@
 #include <cassert>
 
 void test_traversals_and_io();
+
 void test_copy_and_move();
+
 void test_concurrency();
 
 int main() {
@@ -19,13 +21,16 @@ int main() {
     return 0;
 }
 
-using MyIntTree = BinaryTree<BinaryTreeTraits<int>>;
+using MyIntTree = BinaryTree<BinaryTreeTraits<int> >;
 
 void test_traversals_and_io() {
     std::cout << "\n--- Testing Traversals and I/O ---" << std::endl;
     MyIntTree tree;
-    tree.insert(5); tree.insert(3); tree.insert(7); 
-    tree.insert(2); tree.insert(4);
+    tree.insert(5);
+    tree.insert(3);
+    tree.insert(7);
+    tree.insert(2);
+    tree.insert(4);
 
     std::cout << "In-order traversal (via iterator): " << tree << std::endl;
 
@@ -39,7 +44,9 @@ void test_traversals_and_io() {
 void test_copy_and_move() {
     std::cout << "\n--- Testing Copy and Move Semantics ---" << std::endl;
     MyIntTree tree;
-    tree.insert(50); tree.insert(30); tree.insert(70);
+    tree.insert(50);
+    tree.insert(30);
+    tree.insert(70);
 
     std::cout << "\nOriginal tree: " << tree << std::endl;
     MyIntTree copied_tree = tree;
@@ -61,7 +68,7 @@ void test_copy_and_move() {
 }
 
 // Helper function for the concurrency test
-void insert_range(MyIntTree& tree, int start, int end) {
+void insert_range(MyIntTree &tree, int start, int end) {
     for (int i = start; i < end; ++i) {
         tree.insert(i);
     }
@@ -74,14 +81,14 @@ void test_concurrency() {
     const int num_per_thread = 2500;
 
     std::vector<std::thread> threads;
-    std::cout << "Starting " << num_threads << " threads to insert " 
-              << num_per_thread << " elements each..." << std::endl;
+    std::cout << "Starting " << num_threads << " threads to insert "
+            << num_per_thread << " elements each..." << std::endl;
 
     for (int i = 0; i < num_threads; ++i) {
         threads.emplace_back(insert_range, std::ref(concurrent_tree), i * num_per_thread, (i + 1) * num_per_thread);
     }
 
-    for (auto& t : threads) {
+    for (auto &t: threads) {
         t.join();
     }
 

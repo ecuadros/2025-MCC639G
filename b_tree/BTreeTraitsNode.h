@@ -3,11 +3,11 @@
 
 #include <vector>
 
-template <typename T, size_t Order>
+template<typename T, size_t Order>
 class BTreeTraitsNode {
 public:
     using value_type = T;
-    using node_pointer = BTreeTraitsNode<T, Order>*;
+    using node_pointer = BTreeTraitsNode<T, Order> *;
 
     bool m_is_leaf;
     std::vector<value_type> m_keys;
@@ -19,7 +19,7 @@ public:
     }
 
     ~BTreeTraitsNode() {
-        for (node_pointer child : m_children) {
+        for (node_pointer child: m_children) {
             delete child;
         }
     }

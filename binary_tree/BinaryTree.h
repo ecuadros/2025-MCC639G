@@ -10,37 +10,39 @@
 #include "BinaryTreeTraitsNode.h"
 #include "BinaryTreeTraitsIterator.h"
 
-template <typename T>
+template<typename T>
 struct BinaryTreeTraits {
-    using value_type    = T;
-    using node_type     = BinaryTreeTraitsNode<T>;
-    using iterator_type = BinaryTreeTraitsIterator<T>;
-    using compare_fn    = std::less<T>;
+    using value_type = T;
+    using node_type = BinaryTreeTraitsNode<T>;
+    using compare_fn = std::less<T>;
 };
 
-template <typename Traits>
+template<typename Traits>
 class BinaryTree {
 public:
-    using node_type     = typename Traits::node_type;
-    using node_pointer  = node_type*;
-    using value_type    = typename node_type::value_type;
-    using iterator      = typename Traits::iterator_type;
+    using node_type = typename Traits::node_type;
+    using node_pointer = node_type *;
+    using value_type = typename node_type::value_type;
 
-    BinaryTree() : m_root(nullptr), m_size(0) {}
+    // Define forward and reverse iterators using the policies
+    using iterator = BinaryTreeTraitsIterator<value_type, ForwardInOrderPolicy<node_type> >;
+    using reverse_iterator = BinaryTreeTraitsIterator<value_type, BackwardInOrderPolicy<node_type> >;
+
+    BinaryTree() : m_root(nullptr), m_size(0) {
+    }
 
     ~BinaryTree() {
         clear();
     }
 
-    BinaryTree(const BinaryTree& other)
-        : m_root(nullptr), m_size(0)
-    {
+    BinaryTree(const BinaryTree &other)
+        : m_root(nullptr), m_size(0) {
         std::lock_guard<std::mutex> lock(other.m_mutex);
         m_root = copy_recursive(other.m_root);
         m_size = other.m_size;
     }
 
-    BinaryTree& operator=(const BinaryTree& other) {
+    BinaryTree &operator=(const BinaryTree &other) {
         if (this != &other) {
             std::scoped_lock lock(m_mutex, other.m_mutex);
             clear_unlocked();
@@ -50,12 +52,12 @@ public:
         return *this;
     }
 
-    BinaryTree(BinaryTree&& other) noexcept
+    BinaryTree(BinaryTree &&other) noexcept
         : m_root(std::exchange(other.m_root, nullptr)),
-          m_size(std::exchange(other.m_size, 0))
-    {}
+          m_size(std::exchange(other.m_size, 0)) {
+    }
 
-    BinaryTree& operator=(BinaryTree&& other) noexcept {
+    BinaryTree &operator=(BinaryTree &&other) noexcept {
         if (this != &other) {
             std::scoped_lock lock(m_mutex, other.m_mutex);
             clear_unlocked();
@@ -65,7 +67,7 @@ public:
         return *this;
     }
 
-    void insert(const value_type& val) {
+    void insert(const value_type &val) {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_root = insert_unlocked(m_root, val);
     }
@@ -74,6 +76,25 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
         clear_unlocked();
     }
+
+    template<typename Visitor>
+    void preorder_traversal(Visitor visit) const {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        preorder_recursive(m_root, visit);
+    }
+
+    template<typename Visitor>
+    void inorder_traversal(Visitor visit) const {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        inorder_recursive(m_root, visit);
+    }
+
+    template<typename Visitor>
+    void postorder_traversal(Visitor visit) const {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        postorder_recursive(m_root, visit);
+    }
+
 
     size_t size() const noexcept { return m_size; }
 
@@ -85,16 +106,24 @@ public:
         return iterator();
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const BinaryTree<Traits>& tree) {
+    reverse_iterator rbegin() const {
+        return reverse_iterator(m_root);
+    }
+
+    reverse_iterator rend() const {
+        return reverse_iterator();
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const BinaryTree<Traits> &tree) {
         os << "{ ";
-        for (const auto& value : tree) {
+        for (const auto &value: tree) {
             os << value << " ";
         }
         os << "}";
         return os;
     }
 
-    friend std::istream& operator>>(std::istream& is, BinaryTree<Traits>& tree) {
+    friend std::istream &operator>>(std::istream &is, BinaryTree<Traits> &tree) {
         value_type value;
         while (is >> value) {
             tree.insert(value);
@@ -107,7 +136,7 @@ private:
     node_pointer m_root;
     size_t m_size;
 
-    node_pointer insert_unlocked(node_pointer node, const value_type& val) {
+    node_pointer insert_unlocked(node_pointer node, const value_type &val) {
         if (!node) {
             ++m_size;
             return new node_type(val);
@@ -118,6 +147,30 @@ private:
             node->set_right(insert_unlocked(node->right(), val));
         }
         return node;
+    }
+
+    template<typename Visitor>
+    void preorder_recursive(node_pointer node, Visitor &visit) const {
+        if (!node) return;
+        visit(node->value());
+        preorder_recursive(node->left(), visit);
+        preorder_recursive(node->right(), visit);
+    }
+
+    template<typename Visitor>
+    void inorder_recursive(node_pointer node, Visitor &visit) const {
+        if (!node) return;
+        inorder_recursive(node->left(), visit);
+        visit(node->value());
+        inorder_recursive(node->right(), visit);
+    }
+
+    template<typename Visitor>
+    void postorder_recursive(node_pointer node, Visitor &visit) const {
+        if (!node) return;
+        postorder_recursive(node->left(), visit);
+        postorder_recursive(node->right(), visit);
+        visit(node->value());
     }
 
     void clear_unlocked() noexcept {

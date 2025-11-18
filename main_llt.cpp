@@ -7,7 +7,9 @@
 #include <cassert>
 
 void test_traversals_and_io();
+
 void test_copy_and_move();
+
 void test_concurrency();
 
 int main() {
@@ -19,12 +21,14 @@ int main() {
     return 0;
 }
 
-using MyIntList = LinkedList<LinkedListTraits<int>>;
+using MyIntList = LinkedList<LinkedListTraits<int> >;
 
 void test_traversals_and_io() {
     std::cout << "\n--- Testing Traversals and I/O ---" << std::endl;
     MyIntList list;
-    list.add(1); list.add(2); list.add(3);
+    list.add(1);
+    list.add(2);
+    list.add(3);
 
     std::cout << "Forward traversal (via iterator): " << list << std::endl;
 
@@ -37,10 +41,11 @@ void test_traversals_and_io() {
 void test_copy_and_move() {
     std::cout << "\n--- Testing Copy and Move Semantics ---" << std::endl;
     MyIntList list;
-    list.add(100); list.add(200);
+    list.add(100);
+    list.add(200);
 
     std::cout << "Original list: " << list << std::endl;
-    
+
     MyIntList copied_list = list;
     std::cout << "Copied (via constructor): " << copied_list << std::endl;
 
@@ -54,7 +59,7 @@ void test_copy_and_move() {
 }
 
 // Helper for concurrency test
-void add_range_llt(MyIntList& list, int start, int end) {
+void add_range_llt(MyIntList &list, int start, int end) {
     for (int i = start; i < end; ++i) {
         list.add(i);
     }
@@ -62,7 +67,7 @@ void add_range_llt(MyIntList& list, int start, int end) {
 
 void test_concurrency() {
     std::cout << "\n--- Testing Singly Linked List Concurrency ---" << std::endl;
-    
+
     MyIntList concurrent_list;
     const int num_threads = 10;
     const int items_per_thread = 1000;
@@ -76,7 +81,7 @@ void test_concurrency() {
         });
     }
 
-    for (auto& t : threads) {
+    for (auto &t: threads) {
         t.join();
     }
 

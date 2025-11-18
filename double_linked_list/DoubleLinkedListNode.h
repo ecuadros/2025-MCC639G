@@ -4,35 +4,40 @@
 
 #include <utility>
 
-template <typename T>
+template<typename T>
 class DoubleLinkedListNode {
 public:
-    using value_type            = T;
-    using reference_type        = T&;
-    using const_reference_type  = const T&;
-    using pointer_type          = T*;
-    using const_pointer_type    = const T*;
-    using node_type             = DoubleLinkedListNode<T>;
-    using node_pointer          = node_type*;
+    using value_type = T;
+    using reference_type = T &;
+    using const_reference_type = const T &;
+    using pointer_type = T *;
+    using const_pointer_type = const T *;
+    using node_type = DoubleLinkedListNode<T>;
+    using node_pointer = node_type *;
 
     DoubleLinkedListNode() noexcept
-        : m_value{}, m_next(nullptr), m_prev(nullptr) {}
+        : m_value{}, m_next(nullptr), m_prev(nullptr) {
+    }
 
-    explicit DoubleLinkedListNode(const value_type& info)
-        : m_value(info), m_next(nullptr), m_prev(nullptr) {}
+    explicit DoubleLinkedListNode(const value_type &info)
+        : m_value(info), m_next(nullptr), m_prev(nullptr) {
+    }
 
-    explicit DoubleLinkedListNode(value_type&& info) noexcept
-        : m_value(std::move(info)), m_next(nullptr), m_prev(nullptr) {}
+    explicit DoubleLinkedListNode(value_type &&info) noexcept
+        : m_value(std::move(info)), m_next(nullptr), m_prev(nullptr) {
+    }
 
-    DoubleLinkedListNode(const DoubleLinkedListNode&) = delete;
-    DoubleLinkedListNode& operator=(const DoubleLinkedListNode&) = delete;
+    DoubleLinkedListNode(const DoubleLinkedListNode &) = delete;
 
-    DoubleLinkedListNode(DoubleLinkedListNode&& other) noexcept
+    DoubleLinkedListNode &operator=(const DoubleLinkedListNode &) = delete;
+
+    DoubleLinkedListNode(DoubleLinkedListNode &&other) noexcept
         : m_value(std::move(other.m_value)),
           m_next(std::exchange(other.m_next, nullptr)),
-          m_prev(std::exchange(other.m_prev, nullptr)) {}
+          m_prev(std::exchange(other.m_prev, nullptr)) {
+    }
 
-    DoubleLinkedListNode& operator=(DoubleLinkedListNode&& other) noexcept {
+    DoubleLinkedListNode &operator=(DoubleLinkedListNode &&other) noexcept {
         if (this != &other) {
             m_value = std::move(other.m_value);
             m_next = std::exchange(other.m_next, nullptr);

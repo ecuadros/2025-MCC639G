@@ -3,33 +3,38 @@
 
 #include <utility>
 
-template <typename T>
+template<typename T>
 class LinkedListNode {
 public:
-    using value_type            = T;
-    using reference_type        = T&;
-    using const_reference_type  = const T&;
-    using pointer_type          = T*;
-    using const_pointer_type    = const T*;
-    using node_type             = LinkedListNode<T>;
-    using node_pointer          = node_type*;
+    using value_type = T;
+    using reference_type = T &;
+    using const_reference_type = const T &;
+    using pointer_type = T *;
+    using const_pointer_type = const T *;
+    using node_type = LinkedListNode<T>;
+    using node_pointer = node_type *;
 
     LinkedListNode() noexcept
-        : m_value{}, m_next(nullptr) {}
+        : m_value{}, m_next(nullptr) {
+    }
 
-    explicit LinkedListNode(const value_type& info)
-        : m_value(info), m_next(nullptr) {}
+    explicit LinkedListNode(const value_type &info)
+        : m_value(info), m_next(nullptr) {
+    }
 
-    explicit LinkedListNode(value_type&& info) noexcept
-        : m_value(std::move(info)), m_next(nullptr) {}
+    explicit LinkedListNode(value_type &&info) noexcept
+        : m_value(std::move(info)), m_next(nullptr) {
+    }
 
-    LinkedListNode(const LinkedListNode&) = delete;
-    LinkedListNode& operator=(const LinkedListNode&) = delete;
+    LinkedListNode(const LinkedListNode &) = delete;
 
-    LinkedListNode(LinkedListNode&& other) noexcept
-        : m_value(std::move(other.m_value)), m_next(std::exchange(other.m_next, nullptr)) {}
+    LinkedListNode &operator=(const LinkedListNode &) = delete;
 
-    LinkedListNode& operator=(LinkedListNode&& other) noexcept {
+    LinkedListNode(LinkedListNode &&other) noexcept
+        : m_value(std::move(other.m_value)), m_next(std::exchange(other.m_next, nullptr)) {
+    }
+
+    LinkedListNode &operator=(LinkedListNode &&other) noexcept {
         if (this != &other) {
             m_value = std::move(other.m_value);
             m_next = std::exchange(other.m_next, nullptr);

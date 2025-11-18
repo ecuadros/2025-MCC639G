@@ -3,36 +3,41 @@
 
 #include <utility>
 
-template <typename T>
+template<typename T>
 class BinaryTreeTraitsNode {
 public:
-    using value_type            = T;
-    using reference_type        = T&;
-    using const_reference_type  = const T&;
-    using pointer_type          = T*;
-    using const_pointer_type    = const T*;
-    using node_type             = BinaryTreeTraitsNode<T>;
-    using node_pointer          = node_type*;
+    using value_type = T;
+    using reference_type = T &;
+    using const_reference_type = const T &;
+    using pointer_type = T *;
+    using const_pointer_type = const T *;
+    using node_type = BinaryTreeTraitsNode<T>;
+    using node_pointer = node_type *;
 
     BinaryTreeTraitsNode() noexcept
-        : m_value{}, m_left(nullptr), m_right(nullptr), m_parent(nullptr) {}
+        : m_value{}, m_left(nullptr), m_right(nullptr), m_parent(nullptr) {
+    }
 
-    explicit BinaryTreeTraitsNode(const value_type& value)
-        : m_value(value), m_left(nullptr), m_right(nullptr), m_parent(nullptr) {}
+    explicit BinaryTreeTraitsNode(const value_type &value)
+        : m_value(value), m_left(nullptr), m_right(nullptr), m_parent(nullptr) {
+    }
 
-    explicit BinaryTreeTraitsNode(value_type&& value) noexcept
-        : m_value(std::move(value)), m_left(nullptr), m_right(nullptr), m_parent(nullptr) {}
+    explicit BinaryTreeTraitsNode(value_type &&value) noexcept
+        : m_value(std::move(value)), m_left(nullptr), m_right(nullptr), m_parent(nullptr) {
+    }
 
-    BinaryTreeTraitsNode(const BinaryTreeTraitsNode&) = delete;
-    BinaryTreeTraitsNode& operator=(const BinaryTreeTraitsNode&) = delete;
+    BinaryTreeTraitsNode(const BinaryTreeTraitsNode &) = delete;
 
-    BinaryTreeTraitsNode(BinaryTreeTraitsNode&& other) noexcept
+    BinaryTreeTraitsNode &operator=(const BinaryTreeTraitsNode &) = delete;
+
+    BinaryTreeTraitsNode(BinaryTreeTraitsNode &&other) noexcept
         : m_value(std::move(other.m_value)),
           m_left(std::exchange(other.m_left, nullptr)),
           m_right(std::exchange(other.m_right, nullptr)),
-          m_parent(std::exchange(other.m_parent, nullptr)) {}
+          m_parent(std::exchange(other.m_parent, nullptr)) {
+    }
 
-    BinaryTreeTraitsNode& operator=(BinaryTreeTraitsNode&& other) noexcept {
+    BinaryTreeTraitsNode &operator=(BinaryTreeTraitsNode &&other) noexcept {
         if (this != &other) {
             m_value = std::move(other.m_value);
             m_left = std::exchange(other.m_left, nullptr);

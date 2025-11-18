@@ -9,56 +9,57 @@
 #include "LinkedListNode.h"
 #include "LinkedListIterator.h"
 
-template <typename T>
+template<typename T>
 struct LinkedListTraits {
-    using value_type    = T;
-    using node_type     = LinkedListNode<T>;
+    using value_type = T;
+    using node_type = LinkedListNode<T>;
     using iterator_type = LinkedListIterator<T>;
-    using compare_fn    = std::less<T>;
+    using compare_fn = std::less<T>;
 };
 
-template <typename Traits>
+template<typename Traits>
 class LinkedList {
 public:
     using node_type = typename Traits::node_type;
-    using node_pointer = node_type*;
+    using node_pointer = node_type *;
     using value_type = typename Traits::value_type;
     using iterator = typename Traits::iterator_type;
 
-    using reference_type = value_type&;
-    using const_reference_type = const value_type&;
+    using reference_type = value_type &;
+    using const_reference_type = const value_type &;
 
-    LinkedList() : m_head(nullptr), m_tail(nullptr), m_size(0) {}
+    LinkedList() : m_head(nullptr), m_tail(nullptr), m_size(0) {
+    }
 
-    LinkedList(const LinkedList& other)
-        : m_head(nullptr), m_tail(nullptr), m_size(0)
-    {
+    LinkedList(const LinkedList &other)
+        : m_head(nullptr), m_tail(nullptr), m_size(0) {
         std::lock_guard<std::mutex> lock(other.m_mutex);
-        for (const auto& value : other)
+
+        for (const auto &value: other)
             add(value);
     }
 
-    LinkedList& operator=(const LinkedList& other) {
+    LinkedList &operator=(const LinkedList &other) {
         if (this != &other) {
             std::scoped_lock lock(m_mutex, other.m_mutex);
             clear();
-            for (const auto& value : other)
+            for (const auto &value: other)
                 add(value);
         }
         return *this;
     }
 
-    LinkedList(LinkedList&& other) noexcept
+    LinkedList(LinkedList &&other) noexcept
         : m_head(std::exchange(other.m_head, nullptr)),
           m_tail(std::exchange(other.m_tail, nullptr)),
-          m_size(std::exchange(other.m_size, 0))
-    {}
+          m_size(std::exchange(other.m_size, 0)) {
+        std::lock_guard<std::mutex> lock(other.m_mutex);
+    }
 
-    LinkedList& operator=(LinkedList&& other) noexcept {
+    LinkedList &operator=(LinkedList &&other) noexcept {
         if (this != &other) {
             std::scoped_lock lock(m_mutex, other.m_mutex);
             clear();
-            // Steal the resources from the other object
             m_head = std::exchange(other.m_head, nullptr);
             m_tail = std::exchange(other.m_tail, nullptr);
             m_size = std::exchange(other.m_size, 0);
@@ -90,14 +91,14 @@ public:
 
     size_t size() const noexcept { return m_size; }
 
-    friend std::ostream& operator<<(std::ostream& os, const LinkedList<Traits>& list) {
+    friend std::ostream &operator<<(std::ostream &os, const LinkedList<Traits> &list) {
         std::lock_guard<std::mutex> lock(list.m_mutex);
-        for (const auto& value : list)
+        for (const auto &value: list)
             os << value << " ";
         return os;
     }
 
-    friend std::istream& operator>>(std::istream& is, LinkedList<Traits>& list) {
+    friend std::istream &operator>>(std::istream &is, LinkedList<Traits> &list) {
         value_type value;
         while (is >> value)
             list.add(std::move(value));

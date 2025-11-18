@@ -3,17 +3,18 @@
 
 #include <cstddef> // For size_t
 
-template <typename T>
+template<typename T>
 class AVLTreeTraitsNode {
 public:
     using value_type = T;
-    using node_pointer = AVLTreeTraitsNode<T>*;
+    using node_pointer = AVLTreeTraitsNode<T> *;
 
-    explicit AVLTreeTraitsNode(const value_type& val)
-        : m_value(val), m_left(nullptr), m_right(nullptr), m_height(1) {}
+    explicit AVLTreeTraitsNode(const value_type &val)
+        : m_value(val), m_left(nullptr), m_right(nullptr), m_height(1) {
+    }
 
-    value_type& value() { return m_value; }
-    const value_type& value() const { return m_value; }
+    value_type &value() { return m_value; }
+    const value_type &value() const { return m_value; }
 
     node_pointer left() const { return m_left; }
     void set_left(node_pointer node) { m_left = node; }
