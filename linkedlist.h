@@ -176,12 +176,12 @@ public:
         }
     };
     
-    Iterator Begin() { 
+    Iterator begin() { 
         std::scoped_lock lock(m_mutex);
         return Iterator(m_pHead); 
     }
     
-    Iterator End() { return Iterator(nullptr); }
+    Iterator end() { return Iterator(nullptr); }
     
     // Para range-based for loops
     Iterator begin() { return Begin(); }
