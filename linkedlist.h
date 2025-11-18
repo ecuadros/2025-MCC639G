@@ -81,6 +81,7 @@ public:
 
     // Destructor seguro
     virtual ~CLinkedList() {
+        std::scoped_lock lock(m_mutex);
         InternalClear();
     }
 
