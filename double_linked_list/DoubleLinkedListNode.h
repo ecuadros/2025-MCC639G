@@ -5,34 +5,34 @@
 #include <utility>
 
 template <typename T>
-class DoubleLinkedListTraitsNode {
+class DoubleLinkedListNode {
 public:
     using value_type            = T;
     using reference_type        = T&;
     using const_reference_type  = const T&;
     using pointer_type          = T*;
     using const_pointer_type    = const T*;
-    using node_type             = DoubleLinkedListTraitsNode<T>;
+    using node_type             = DoubleLinkedListNode<T>;
     using node_pointer          = node_type*;
 
-    DoubleLinkedListTraitsNode() noexcept
+    DoubleLinkedListNode() noexcept
         : m_value{}, m_next(nullptr), m_prev(nullptr) {}
 
-    explicit DoubleLinkedListTraitsNode(const value_type& info)
+    explicit DoubleLinkedListNode(const value_type& info)
         : m_value(info), m_next(nullptr), m_prev(nullptr) {}
 
-    explicit DoubleLinkedListTraitsNode(value_type&& info) noexcept
+    explicit DoubleLinkedListNode(value_type&& info) noexcept
         : m_value(std::move(info)), m_next(nullptr), m_prev(nullptr) {}
 
-    DoubleLinkedListTraitsNode(const DoubleLinkedListTraitsNode&) = delete;
-    DoubleLinkedListTraitsNode& operator=(const DoubleLinkedListTraitsNode&) = delete;
+    DoubleLinkedListNode(const DoubleLinkedListNode&) = delete;
+    DoubleLinkedListNode& operator=(const DoubleLinkedListNode&) = delete;
 
-    DoubleLinkedListTraitsNode(DoubleLinkedListTraitsNode&& other) noexcept
+    DoubleLinkedListNode(DoubleLinkedListNode&& other) noexcept
         : m_value(std::move(other.m_value)),
           m_next(std::exchange(other.m_next, nullptr)),
           m_prev(std::exchange(other.m_prev, nullptr)) {}
 
-    DoubleLinkedListTraitsNode& operator=(DoubleLinkedListTraitsNode&& other) noexcept {
+    DoubleLinkedListNode& operator=(DoubleLinkedListNode&& other) noexcept {
         if (this != &other) {
             m_value = std::move(other.m_value);
             m_next = std::exchange(other.m_next, nullptr);

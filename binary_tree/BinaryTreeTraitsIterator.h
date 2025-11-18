@@ -1,21 +1,20 @@
-#ifndef AVL_TREE_TRAITS_ITERATOR_H
-#define AVL_TREE_TRAITS_ITERATOR_H
+#ifndef BINARY_TREE_TRAITS_ITERATOR_H
+#define BINARY_TREE_TRAITS_ITERATOR_H
 
 #include <stack>
-#include "AVLTreeTraitsNode.h"
+#include "BinaryTreeTraitsNode.h"
 
 template <typename T>
-class AVLTreeTraitsIterator {
+class BinaryTreeTraitsIterator {
 public:
-    using node_type = AVLTreeTraitsNode<T>;
+    using node_type = BinaryTreeTraitsNode<T>;
     using node_pointer = node_type*;
     using value_type = typename node_type::value_type;
     using reference = value_type&;
-    using pointer = value_type*;
 
-    AVLTreeTraitsIterator() : m_current(nullptr) {}
+    BinaryTreeTraitsIterator() : m_current(nullptr) {}
 
-    explicit AVLTreeTraitsIterator(node_pointer root) {
+    explicit BinaryTreeTraitsIterator(node_pointer root) {
         push_left_path(root);
         m_current = m_stack.empty() ? nullptr : m_stack.top();
     }
@@ -24,7 +23,7 @@ public:
         return m_current->value();
     }
 
-    AVLTreeTraitsIterator& operator++() {
+    BinaryTreeTraitsIterator& operator++() {
         if (!m_stack.empty()) {
             node_pointer node = m_stack.top();
             m_stack.pop();
@@ -34,7 +33,7 @@ public:
         return *this;
     }
 
-    bool operator!=(const AVLTreeTraitsIterator& other) const {
+    bool operator!=(const BinaryTreeTraitsIterator& other) const {
         return m_current != other.m_current;
     }
 
@@ -50,4 +49,4 @@ private:
     }
 };
 
-#endif // AVL_TREE_TRAITS_ITERATOR_H
+#endif // BINARY_TREE_TRAITS_ITERATOR_H

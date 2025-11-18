@@ -1,63 +1,87 @@
 #include <iostream>
-#include <fstream>
-#include <utility>
+#include <sstream>
 #include <vector>
 #include <thread>
+#include <utility>
+#include "linked_list/LinkedList.h"
 #include <cassert>
 
-#include "linked_list/LinkedListTraits.h"
-
-void test_singly_linked_list();
-void test_singly_linked_list_concurrency();
+void test_traversals_and_io();
+void test_copy_and_move();
+void test_concurrency();
 
 int main() {
-    std::cout << "--- Running All Test Suites ---" << std::endl;
-    test_singly_linked_list();
-    test_singly_linked_list_concurrency();
+    std::cout << "--- LinkedListTraits Test Suite ---" << std::endl;
+    test_traversals_and_io();
+    test_copy_and_move();
+    test_concurrency();
     std::cout << "\n--- All tests finished. ---" << std::endl;
     return 0;
 }
 
-void test_singly_linked_list() {
-    std::cout << "\n\n--- Testing Singly Linked List (LinkedListTraits) ---" << std::endl;
+using MyIntList = LinkedList<LinkedListTraits<int>>;
 
-    // I/O Test
-    LinkedListTraits<int> s_list;
-    s_list.add(10); s_list.add(20);
-    std::cout << "Singly list output: " << s_list << std::endl;
+void test_traversals_and_io() {
+    std::cout << "\n--- Testing Traversals and I/O ---" << std::endl;
+    MyIntList list;
+    list.add(1); list.add(2); list.add(3);
 
-    // Copy Test
-    LinkedListTraits<int> s_copy = s_list;
-    s_copy.add(30);
-    std::cout << "Original singly list after copy: " << s_list << std::endl;
-    std::cout << "Copied singly list with new element: " << s_copy << std::endl;
+    std::cout << "Forward traversal (via iterator): " << list << std::endl;
 
-    // Move Test
-    LinkedListTraits<int> s_moved = std::move(s_copy);
-    std::cout << "Moved singly list: " << s_moved << std::endl;
-    std::cout << "Original singly list after move: " << s_copy << std::endl;
+    std::stringstream ss("10 20 30");
+    MyIntList list_from_stream;
+    ss >> list_from_stream;
+    std::cout << "List read from stream: " << list_from_stream << std::endl;
 }
 
-void test_singly_linked_list_concurrency() {
-    std::cout << "\n\n--- Testing Singly Linked List Concurrency ---" << std::endl;
+void test_copy_and_move() {
+    std::cout << "\n--- Testing Copy and Move Semantics ---" << std::endl;
+    MyIntList list;
+    list.add(100); list.add(200);
 
-    LinkedListTraits<int> shared_list;
-    std::vector<std::thread> threads;
+    std::cout << "Original list: " << list << std::endl;
+    
+    MyIntList copied_list = list;
+    std::cout << "Copied (via constructor): " << copied_list << std::endl;
+
+    copied_list.add(300);
+    std::cout << "Original list (should be unchanged): " << list << std::endl;
+    std::cout << "Copied list (modified): " << copied_list << std::endl;
+
+    MyIntList moved_list = std::move(list);
+    std::cout << "\nMoved list (from original): " << moved_list << std::endl;
+    std::cout << "Original list (after move): " << list << std::endl;
+}
+
+// Helper for concurrency test
+void add_range_llt(MyIntList& list, int start, int end) {
+    for (int i = start; i < end; ++i) {
+        list.add(i);
+    }
+}
+
+void test_concurrency() {
+    std::cout << "\n--- Testing Singly Linked List Concurrency ---" << std::endl;
+    
+    MyIntList concurrent_list;
     const int num_threads = 10;
     const int items_per_thread = 1000;
 
+    std::vector<std::thread> threads;
     for (int i = 0; i < num_threads; ++i) {
-        threads.emplace_back([&shared_list, items_per_thread]() {
+        threads.emplace_back([&concurrent_list, items_per_thread]() {
             for (int j = 0; j < items_per_thread; ++j) {
-                shared_list.add(j);
+                concurrent_list.add(j);
             }
         });
     }
+
     for (auto& t : threads) {
         t.join();
     }
 
-    std::cout << "Final list size: " << shared_list.size() << std::endl;
-    assert(shared_list.size() == num_threads * items_per_thread);
+    const size_t expected_size = num_threads * items_per_thread;
+    std::cout << "Final list size: " << concurrent_list.size() << std::endl;
+    assert(concurrent_list.size() == expected_size);
     std::cout << "Concurrency test passed: Final size is correct." << std::endl;
 }

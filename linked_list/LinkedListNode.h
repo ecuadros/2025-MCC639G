@@ -4,32 +4,32 @@
 #include <utility>
 
 template <typename T>
-class LinkedListTraitsNode {
+class LinkedListNode {
 public:
     using value_type            = T;
     using reference_type        = T&;
     using const_reference_type  = const T&;
     using pointer_type          = T*;
     using const_pointer_type    = const T*;
-    using node_type             = LinkedListTraitsNode<T>;
+    using node_type             = LinkedListNode<T>;
     using node_pointer          = node_type*;
 
-    LinkedListTraitsNode() noexcept
+    LinkedListNode() noexcept
         : m_value{}, m_next(nullptr) {}
 
-    explicit LinkedListTraitsNode(const value_type& info)
+    explicit LinkedListNode(const value_type& info)
         : m_value(info), m_next(nullptr) {}
 
-    explicit LinkedListTraitsNode(value_type&& info) noexcept
+    explicit LinkedListNode(value_type&& info) noexcept
         : m_value(std::move(info)), m_next(nullptr) {}
 
-    LinkedListTraitsNode(const LinkedListTraitsNode&) = delete;
-    LinkedListTraitsNode& operator=(const LinkedListTraitsNode&) = delete;
+    LinkedListNode(const LinkedListNode&) = delete;
+    LinkedListNode& operator=(const LinkedListNode&) = delete;
 
-    LinkedListTraitsNode(LinkedListTraitsNode&& other) noexcept
+    LinkedListNode(LinkedListNode&& other) noexcept
         : m_value(std::move(other.m_value)), m_next(std::exchange(other.m_next, nullptr)) {}
 
-    LinkedListTraitsNode& operator=(LinkedListTraitsNode&& other) noexcept {
+    LinkedListNode& operator=(LinkedListNode&& other) noexcept {
         if (this != &other) {
             m_value = std::move(other.m_value);
             m_next = std::exchange(other.m_next, nullptr);

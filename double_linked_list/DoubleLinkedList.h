@@ -1,37 +1,46 @@
-#ifndef LINKED_LIST_TRAITS_H
-#define LINKED_LIST_TRAITS_H
+#ifndef DOUBLE_LINKED_LIST_TRAITS_H
+#define DOUBLE_LINKED_LIST_TRAITS_H
 
 #include <ostream>
-#include <istream>
-#include <mutex>
 #include <utility>
-#include "LinkedListTraitsNode.h"
-#include "LinkedListTraitsIterator.h"
+#include <mutex>
+#include <functional>
+#include "DoubleLinkedListNode.h"
+#include "DoubleLinkedListIterator.h"
 
 template <typename T>
-class LinkedListTraits {
+struct DoubleLinkedListTraits {
+    using value_type    = T;
+    using node_type     = DoubleLinkedListNode<T>;
+    using iterator_type = DoubleLinkedListIterator<T>;
+    using compare_fn    = std::less<T>;
+};
+
+template <typename Traits>
+class DoubleLinkedList {
 public:
-    using node_type = LinkedListTraitsNode<T>;
+    using node_type = typename Traits::node_type;
     using node_pointer = node_type*;
+    using value_type = typename Traits::value_type;
+    using iterator = typename Traits::iterator_type;
 
-    using value_type = typename node_type::value_type;
-    using reference_type = typename node_type::reference_type;
-    using const_reference_type = typename node_type::const_reference_type;
+    DoubleLinkedList() : m_head(nullptr), m_tail(nullptr), m_size(0) {}
 
-    using iterator = LinkedListTraitsIterator<T>;
+    ~DoubleLinkedList() {
+        clear();
+    }
 
-    LinkedListTraits() : m_head(nullptr), m_tail(nullptr), m_size(0) {}
-
-    LinkedListTraits(const LinkedListTraits& other)
+    // Copy constructor
+    DoubleLinkedList(const DoubleLinkedList& other)
         : m_head(nullptr), m_tail(nullptr), m_size(0)
     {
         std::lock_guard<std::mutex> lock(other.m_mutex);
-        // No need to copy size, the add() method will increment it
         for (const auto& value : other)
             add(value);
     }
 
-    LinkedListTraits& operator=(const LinkedListTraits& other) {
+    // Copy assignment
+    DoubleLinkedList& operator=(const DoubleLinkedList& other) {
         if (this != &other) {
             std::scoped_lock lock(m_mutex, other.m_mutex);
             clear();
@@ -41,27 +50,23 @@ public:
         return *this;
     }
 
-    LinkedListTraits(LinkedListTraits&& other) noexcept
+    // Move constructor
+    DoubleLinkedList(DoubleLinkedList&& other) noexcept
         : m_head(std::exchange(other.m_head, nullptr)),
           m_tail(std::exchange(other.m_tail, nullptr)),
           m_size(std::exchange(other.m_size, 0))
     {}
 
-    LinkedListTraits& operator=(LinkedListTraits&& other) noexcept {
+    // Move assignment
+    DoubleLinkedList& operator=(DoubleLinkedList&& other) noexcept {
         if (this != &other) {
             std::scoped_lock lock(m_mutex, other.m_mutex);
             clear();
-            // Steal the resources from the other object
             m_head = std::exchange(other.m_head, nullptr);
             m_tail = std::exchange(other.m_tail, nullptr);
             m_size = std::exchange(other.m_size, 0);
         }
         return *this;
-    }
-
-    ~LinkedListTraits() {
-        clear();
-        std::cout << "[Debug] LinkedListTraits destructor called." << std::endl;
     }
 
     void add(value_type info) {
@@ -73,6 +78,7 @@ public:
             m_tail = new_node;
         } else {
             m_tail->set_next(new_node);
+            // new_node->set_prev(m_tail) is handled by DoubleLinkedListNode's set_next
             m_tail = new_node;
         }
         ++m_size;
@@ -80,26 +86,29 @@ public:
 
     iterator begin() const noexcept { return iterator(m_head); }
     iterator end() const noexcept { return iterator(nullptr); }
+    iterator rbegin() const noexcept { return iterator(m_tail); } // For reverse iteration
 
     size_t size() const noexcept { return m_size; }
 
-    friend std::ostream& operator<<(std::ostream& os, const LinkedListTraits<T>& list) {
+    friend std::ostream& operator<<(std::ostream& os, const DoubleLinkedList<Traits>& list) {
         std::lock_guard<std::mutex> lock(list.m_mutex);
         for (const auto& value : list)
             os << value << " ";
         return os;
     }
 
-    friend std::istream& operator>>(std::istream& is, LinkedListTraits<T>& list) {
+    friend std::istream& operator>>(std::istream& is, DoubleLinkedList<Traits>& list) {
         value_type value;
+        list.clear();
         while (is >> value)
-            list.add(std::move(value));
+            list.add(value);
         return is;
     }
 
 private:
     void clear() noexcept {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        // No lock needed here as it's a private helper called by public methods
+        // that already hold the lock.
         node_pointer current = m_head;
         while (current) {
             node_pointer next = current->next();
@@ -117,4 +126,4 @@ private:
     size_t m_size;
 };
 
-#endif // LINKED_LIST_TRAITS_H
+#endif // DOUBLE_LINKED_LIST_TRAITS_H

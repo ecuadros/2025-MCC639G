@@ -7,23 +7,34 @@
 #include <mutex>
 #include <utility>
 #include "BTreeTraitsNode.h"
+#include <functional> // For std::less
 #include "BTreeTraitsIterator.h"
 
-template <typename T, size_t Order>
-class BTreeTraits {
+template <typename T, size_t TOrder>
+struct BTreeTraits {
+    using value_type    = T;
+    using node_type     = BTreeTraitsNode<T, TOrder>;
+    using iterator_type = BTreeTraitsIterator<T, TOrder>;
+    using compare_fn    = std::less<T>;
+    static constexpr size_t Order = TOrder;
+};
+
+template <typename Traits>
+class BTree {
 public:
-    using node_type = BTreeTraitsNode<T, Order>;
+    using node_type = typename Traits::node_type;
     using node_pointer = node_type*;
-    using value_type = typename node_type::value_type;
-    using iterator = BTreeTraitsIterator<T, Order>;
+    using value_type = typename Traits::value_type;
+    using iterator = typename Traits::iterator_type;
+    static constexpr size_t Order = Traits::Order;
 
-    BTreeTraits() : m_root(nullptr), m_size(0) {}
+    BTree() : m_root(nullptr), m_size(0) {}
 
-    ~BTreeTraits() {
-        delete m_root;
+    ~BTree() {
+        clear_unlocked();
     }
 
-    BTreeTraits(const BTreeTraits& other) : m_root(nullptr), m_size(0) {
+    BTree(const BTree& other) : m_root(nullptr), m_size(0) {
         std::lock_guard<std::mutex> lock(other.m_mutex);
         if (other.m_root) {
             m_root = copy_recursive(other.m_root);
@@ -31,33 +42,32 @@ public:
         }
     }
 
-    BTreeTraits& operator=(const BTreeTraits& other) {
+    BTree& operator=(const BTree& other) {
         if (this != &other) {
             std::scoped_lock lock(m_mutex, other.m_mutex);
-            delete m_root;
+            clear_unlocked();
             m_root = other.m_root ? copy_recursive(other.m_root) : nullptr;
             m_size = other.m_size;
         }
         return *this;
     }
 
-    BTreeTraits(BTreeTraits&& other) noexcept {
-        std::lock_guard<std::mutex> lock(other.m_mutex);
-        m_root = std::exchange(other.m_root, nullptr);
-        m_size = std::exchange(other.m_size, 0);
-    }
+    BTree(BTree&& other) noexcept
+        : m_root(std::exchange(other.m_root, nullptr)),
+          m_size(std::exchange(other.m_size, 0))
+    {}
 
-    BTreeTraits& operator=(BTreeTraits&& other) noexcept {
+    BTree& operator=(BTree&& other) noexcept {
         if (this != &other) {
             std::scoped_lock lock(m_mutex, other.m_mutex);
-            delete m_root;
+            clear_unlocked();
             m_root = std::exchange(other.m_root, nullptr);
             m_size = std::exchange(other.m_size, 0);
         }
         return *this;
     }
 
-    void insert(const value_type& key) {
+    void insert(value_type key) {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_root) {
             m_root = new node_type(true);
@@ -71,15 +81,20 @@ public:
             split_child(new_root, 0);
             m_root = new_root;
         }
-        insert_non_full(m_root, key);
+        insert_non_full(m_root, std::move(key));
     }
 
-    size_t size() const { return m_size; }
+    void clear() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        clear_unlocked();
+    }
+
+    size_t size() const noexcept { return m_size; }
 
     iterator begin() const { return iterator(m_root); }
-    iterator end() const { return iterator(); }
+    iterator end() const noexcept { return iterator(); }
 
-    friend std::ostream& operator<<(std::ostream& os, const BTreeTraits<T, Order>& tree) {
+    friend std::ostream& operator<<(std::ostream& os, const BTree<Traits>& tree) {
         os << "{ ";
         for(const auto& key : tree) {
             os << key << " ";
@@ -88,7 +103,7 @@ public:
         return os;
     }
 
-    friend std::istream& operator>>(std::istream& is, BTreeTraits<T, Order>& tree) {
+    friend std::istream& operator>>(std::istream& is, BTree<Traits>& tree) {
         value_type value;
         while (is >> value) {
             tree.insert(value);
@@ -114,19 +129,25 @@ private:
         parent->m_children.insert(parent->m_children.begin() + child_index + 1, new_sibling);
     }
 
-    void insert_non_full(node_pointer node, const value_type& key) {
+    void insert_non_full(node_pointer node, value_type key) {
         auto it = std::upper_bound(node->m_keys.begin(), node->m_keys.end(), key);
         int i = std::distance(node->m_keys.begin(), it);
         if (node->m_is_leaf) {
-            node->m_keys.insert(it, key);
+            node->m_keys.insert(it, std::move(key));
             m_size++;
         } else {
             if (node->m_children[i]->is_full()) {
                 split_child(node, i);
                 if (key > node->m_keys[i]) i++;
             }
-            insert_non_full(node->m_children[i], key);
+            insert_non_full(node->m_children[i], std::move(key));
         }
+    }
+
+    void clear_unlocked() noexcept {
+        delete m_root; // Relies on BTreeTraitsNode's recursive destructor
+        m_root = nullptr;
+        m_size = 0;
     }
 
     node_pointer copy_recursive(node_pointer other_node) {
