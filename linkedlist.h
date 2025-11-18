@@ -69,7 +69,7 @@ public:
     }
 
     // TODO: Move contructor
-    CLinkedList(CLinkedList &&other)  noexcept {
+    CLinkedList(CLinkedList &&other)  {
         std::scoped_lock lock(other.m_mutex);
         m_pHead = std::exchange(other.m_pHead, nullptr); //usar exchange
         m_size = std::exchange(other.m_size, 0);
