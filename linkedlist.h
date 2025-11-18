@@ -59,17 +59,17 @@ private:
 
 public:
     // Constructor
-    CLinkedList();
+    CLinkedList()= default;
     // TODO: Constructor Copia
     CLinkedList(CLinkedList &other) {
-        std::scoped_lock lock(m_mutex, other.m_mutex) //; mmutex
+        std::scoped_lock lock(m_mutex, other.m_mutex); //mmutex
         for (auto& item : other) {
             Insert(item, Ref{}); // Ref podría necesitar ajuste
         }
     }
 
     // TODO: Move contructor
-    CLinkedList(CLinkedList &&other)  {
+    CLinkedList(CLinkedList &&other)  noexcept {
         std::scoped_lock lock(other.m_mutex);
         m_pHead = std::exchange(other.m_pHead, nullptr); //usar exchange
         m_size = std::exchange(other.m_size, 0);
