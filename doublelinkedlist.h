@@ -196,7 +196,6 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other){
     while(pNode){
         // Insertar copia del dato y su referencia
         // Nota: No usamos Insert() aquí para evitar deadlock,
-        // llamamos directamente a InternalInsert()
         value_type val = pNode->GetData();
         Ref         ref = pNode->GetRef();
         InternalInsert(m_pRoot, val, ref); // Usamos InternalInsert() para evitar deadlock
