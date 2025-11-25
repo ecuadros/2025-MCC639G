@@ -277,7 +277,7 @@ public:
     // POSTORDER VARIADIC CON LOCK
     // ========================================================================
     template <typename Function, typename... Args>
-    void postorder_safe(Function func, Args const&... args) {
+    void postorder(Function func, Args const&... args) {
         std::lock_guard<std::mutex> lock(m_mutex);
         internal_postorder(m_pRoot, 0, func, args...);
     }
