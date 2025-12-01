@@ -2,6 +2,7 @@
 #define __LINKEDLIST_H__
 #include "types.h"
 #include <mutex>
+#include <utility>
 
 template <typename T>
 class LLNode{
@@ -15,7 +16,7 @@ private:
 
 public:
     LLNode(Type &elem, Ref ref, LLNode<T> *pNext = nullptr)
-        : m_data(elem), m_pNext(pNext){
+        : m_data(elem), m_ref(ref), m_pNext(pNext){
     }
     Type   GetData()    { return m_data;     }
     Type  &GetDataRef() { return m_data;     }
@@ -27,26 +28,75 @@ template <typename T>
 class CLinkedList{
 private:
     using Type = T; 
-    using Node = typename LLNode<Type>  ; 
-    // Node<Type> *m_pHead = nullptr;
+    using Node = typename LLNode<Type>;
+    Node *m_pHead = nullptr;
+    std::mutex m_listMutex;
 public:
     // Constructor
-    CLinkedList();
+    CLinkedList(): m_pHead(nullptr){};
+
     // TODO: Constructor Copia
-    CLinkedList(CLinkedList &other){
-        std::scoped_lock();
+    CLinkedList(const CLinkedList &other) : m_pHead(nullptr){
+        std::scoped_lock lock(other.m_listMutex);
+
+        if (other.m_pHead == nullptr) return;
+        m_pHead = new Node(other.m_pHead->GetDataRef(), other.m_pHead->GetRef());
+        Node* currentOther = other.m_pHead->GetNext();
+        Node* currentThis = m_pHead;
+
+        while (currentOther != nullptr) {
+            currentThis->GetNextRef() = new Node(currentOther->GetDataRef(), 
+                                                 currentOther->GetRef());
+            currentThis = currentThis->GetNext();
+            currentOther = currentOther->GetNext();
+        }
+        
+
     };
 
     // TODO: Move contructor
-    CLinkedList(CLinkedList &&other);
+    CLinkedList(CLinkedList &&other){
+        std::scoped_lock lock(other.m_listMutex);
+        m_pHead = std::exchange(other.m_pHead, nullptr);
+    };
+
 
     // Destructor seguro
-    virtual ~CLinkedList();
+    virtual ~CLinkedList(){
+        std::scoped_lock lock(m_listMutex);
+        Node* head = std::exchange(m_pHead, nullptr);
+        while (head != nullptr) {
+            Node* temp = std::exchange(head, head->GetNext());
+            delete temp;
+        }
+    };
 
-    void Insert(Type &elem, Ref ref);
-private:
+    void Insert(Type &elem, Ref ref){
+        std::scoped_lock lock(m_listMutex);
+        InternalInsert(m_pHead, elem, ref);
+    };
+
     // TODO: Implementar
-    void InternalInsert(Node *&rParent, Type &elem, Ref ref);
+
+    void InternalInsert(Node *&rParent, Type &elem, Ref ref){
+        if (!rParent || ref < rParent->GetRef()){
+            rParent = new Node(elem, ref, rParent);
+            return;
+        }
+        InternalInsert(rParent->GetNextRef(), elem, ref);
+    };
+
+        void Print() const {
+        std::scoped_lock lock(m_listMutex);
+        
+        Node* current = m_pHead;
+        while (current != nullptr) {
+            
+            std::cout << current->GetData() << " ";
+            current = current->GetNext();
+        }
+        std::cout << std::endl;
+    }
 };
 
 template <typename T>
