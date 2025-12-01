@@ -58,7 +58,6 @@ void test_copy_and_move() {
     std::cout << "Original list (after move): " << list << std::endl;
 }
 
-// Helper for concurrency test
 void add_range_llt(MyIntList &list, int start, int end) {
     for (int i = start; i < end; ++i) {
         list.add(i);

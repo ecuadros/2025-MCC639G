@@ -24,7 +24,6 @@ public:
     using node_pointer = node_type *;
     using value_type = typename node_type::value_type;
 
-    // Define forward and reverse iterators using the policies
     using iterator = BinaryTreeTraitsIterator<value_type, ForwardInOrderPolicy<node_type> >;
     using reverse_iterator = BinaryTreeTraitsIterator<value_type, BackwardInOrderPolicy<node_type> >;
 

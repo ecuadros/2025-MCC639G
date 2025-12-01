@@ -12,8 +12,6 @@ template<typename T>
 struct DoubleLinkedListTraits {
     using value_type = T;
     using node_type = DoubleLinkedListNode<T>;
-    // The iterator type is now defined inside the class that uses it
-    // using iterator_type = DoubleLinkedListIterator<T>;
     using compare_fn = std::less<T>;
 };
 
@@ -23,8 +21,7 @@ public:
     using node_type = typename Traits::node_type;
     using node_pointer = node_type *;
     using value_type = typename Traits::value_type;
-
-    // Define forward and reverse iterators using the policies
+    
     using iterator = DoubleLinkedListIterator<value_type, ForwardMovePolicy<node_type> >;
     using reverse_iterator = DoubleLinkedListIterator<value_type, BackwardMovePolicy<node_type> >;
 

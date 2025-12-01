@@ -67,7 +67,6 @@ void test_copy_and_move() {
     std::cout << "Original tree (after move): " << tree << std::endl;
 }
 
-// Helper function for the concurrency test
 void insert_range(MyIntTree &tree, int start, int end) {
     for (int i = start; i < end; ++i) {
         tree.insert(i);

@@ -64,7 +64,6 @@ void test_copy_and_move() {
     std::cout << "Original list (after move): " << list << std::endl;
 }
 
-// Helper for concurrency test
 void test_concurrency() {
     std::cout << "\n--- Testing Doubly Linked List Concurrency ---" << std::endl;
 

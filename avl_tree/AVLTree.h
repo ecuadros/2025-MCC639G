@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <mutex>
-#include <functional> // For std::less
+#include <functional>
 #include <utility>
 #include "AVLTreeTraitsNode.h"
 #include "AVLTreeTraitsIterator.h"
@@ -23,7 +23,6 @@ public:
     using node_pointer = node_type *;
     using value_type = typename node_type::value_type;
 
-    // Define forward and reverse iterators using the policies
     using iterator = AVLTreeTraitsIterator<value_type, ForwardInOrderPolicy<node_type> >;
     using reverse_iterator = AVLTreeTraitsIterator<value_type, BackwardInOrderPolicy<node_type> >;
 

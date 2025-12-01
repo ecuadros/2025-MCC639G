@@ -64,8 +64,6 @@ public:
     }
 
     bool operator!=(const BinaryTreeTraitsIterator &other) const {
-        // Iterators are not equal if one has items and the other doesn't,
-        // or if their top elements differ.
         if (m_stack.empty() != other.m_stack.empty()) return true;
         if (m_stack.empty()) return false; // both are empty
         return m_stack.top() != other.m_stack.top();

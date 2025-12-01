@@ -1,7 +1,7 @@
 #ifndef AVL_TREE_TRAITS_NODE_H
 #define AVL_TREE_TRAITS_NODE_H
 
-#include <cstddef> // For size_t
+#include <cstddef>
 
 template<typename T>
 class AVLTreeTraitsNode {
