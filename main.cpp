@@ -1,24 +1,16 @@
 #include <iostream>
-#include "test.h"
+//#include "test.h"
 #include "util.h"
-#include "clasestemplate.h"
+//#include "clasestemplate.h"
 #include "linkedlist.h"
-#include "doublelinkedlist.h"
-#include "binarytree.h"
-#include "pointers.h"
+//#include "pointers.h"
+//#include "concurrent.h"
+
+
 // #include "vector.h"
 
-using namespace std;
 
-// 1. Ernesto Cuadros-Vargas
-// 2. Luis Antonio Selis Vasquez
-// 3. Alex Segura
-// 4. Juan Felix Arias Ramos
-// 5. Oscar Toledo Guerrero
-// 6. Richard Villanueva Retamozo
-// 7. José Bazán
-// 8. Aldo Arriola
-// 9. David Quispe
+using namespace std;
 
 // Forma 1 de Compilar: 
 // g++ -std=c++17 -Wall -g -pthread -o main main.cpp test.cpp
@@ -27,6 +19,7 @@ using namespace std;
 
 int main(){
     cout << "Hello EDA - MCC639G" <<endl;
+
     // DemoTest();
     // DemoUtil();
     // DemoClasesTemplate();
@@ -35,7 +28,8 @@ int main(){
     // DemoVector();
     
     DemoLinkedList();
-    DemoDoubleLinkedList();
-    DemoBinaryTree();
+    //TestConcurrency();
+
+ 
     return 0;
 }

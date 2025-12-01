@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <iostream>
 #include "test.h"
 
@@ -12,6 +13,10 @@ void DemoTest(){
     std::cout << "Suma de 3 + 7 = " << resultado << std::endl;
 }
 
+=======
+#include "test.h"
+
+>>>>>>> upstream/main
 int prueba(int n){
     return n*n;
 }
@@ -19,10 +24,13 @@ int prueba(int n){
 // Nueva función suma, Luis Selis
 int suma(int a, int b){
     return a + b;
+<<<<<<< HEAD
 }
 
 int division(int a, int b) {
     if (b != 0)
         return a / b;
     return 0;
+=======
+>>>>>>> upstream/main
 }
