@@ -206,6 +206,8 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other){
 // Move Constructor
 template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
+    // Lock sobre la lista origen
+    std::lock_guard<std::mutex> lock(other.m_mutex);
     m_pRoot    = std::move(other.m_pRoot);
     m_pTail    = std::move(other.m_pTail);
     m_nElem    = std::move(other.m_nElem);
@@ -224,6 +226,8 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
 template <typename Traits>
 CDoubleLinkedList<Traits>::~CDoubleLinkedList()
 {
+    // Lock sobre la lista origen
+    std::lock_guard<std::mutex> lock(other.m_mutex);
     Node *pNode = m_pRoot;
     while(pNode){
         Node *pNext = pNode->GetNext();
