@@ -7,8 +7,9 @@ SRCS = main.cpp \
 	   test.cpp  util.cpp \
 	   clasestemplate.cpp \
 	   pointers.cpp \
-	   ContainersDemo.cpp \
-	   vector.cpp
+	   binarytree.cpp \
+	   avl.cpp
+	   
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(TARGET)

@@ -52,7 +52,7 @@ decltype(auto) call(Callable op, Args&&... args)
     }
     else // return type is not void:
     { auto ret = invoke(forward<Callable>(op), forward<Args>(args)...);
-      std::cout << "Function is returning: " << type_name<decltype(ret)>() << endl;
+      std::cout << "Function is returning: " << typeid(typename std::decay<decltype(ret)>::type).name() << std::endl;
       //...  // do something (with ret) before we return
       return ret;
     }
