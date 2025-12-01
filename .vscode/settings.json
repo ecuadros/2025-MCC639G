@@ -91,5 +91,7 @@
         "text_encoding": "cpp",
         "thread": "cpp",
         "cinttypes": "cpp"
-    }
+    },
+    "workbench.panel.defaultLocation": "bottom",
+    "terminal.integrated.defaultLocation": "editor"
 }

@@ -1,6 +1,7 @@
 #ifndef __LINKEDLIST_H__
 #define __LINKEDLIST_H__
 #include "types.h"
+#include <mutex>
 
 template <typename T>
 class LLNode{
@@ -10,6 +11,7 @@ private:
     Type     m_data;
     Ref      m_ref;
     Node    *m_pNext = nullptr;
+    std::mutex m;
 
 public:
     LLNode(Type &elem, Ref ref, LLNode<T> *pNext = nullptr)
@@ -31,7 +33,9 @@ public:
     // Constructor
     CLinkedList();
     // TODO: Constructor Copia
-    CLinkedList(CLinkedList &other);
+    CLinkedList(CLinkedList &other){
+        std::scoped_lock();
+    };
 
     // TODO: Move contructor
     CLinkedList(CLinkedList &&other);
