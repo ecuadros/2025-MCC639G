@@ -4,6 +4,7 @@
 #include "types.h"
 #include "traits.h"
 #include <mutex>
+#include <utility>
 
 template <typename Traits>
 class DLLNode{
@@ -193,19 +194,11 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other){
 // Move Constructor
 template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
-    m_pRoot    = std::move(other.m_pRoot);
-    m_nElem    = std::move(other.m_nElem);
-    m_fCompare = std::move(other.m_fCompare);
     std::lock_guard<std::mutex> lock(other.mutex);
-    Node *pNode = other.m_pRoot;
-    while (pNode)
-    {
-        value_type val = pNode->GetData();
-        Ref ref = pNode->GetRef();
-        Insert(val, ref);
-        pNode = pNode->GetNext();
-    }
-    
+    m_pRoot = std::exchange(other.m_pRoot, nullptr);
+    m_nElem = std::exchange(other.m_nElem, 0);
+    m_fCompare = std::exchange(other.m_fCompare, nullptr);
+   
 
 }
 
@@ -213,6 +206,17 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
 template <typename Traits>
 CDoubleLinkedList<Traits>::~CDoubleLinkedList()
 {
+    std::lock_guard<std::mutex> lock(mutex);
+    Node* root = std::exchange(m_pRoot, nullptr);
+    Node* tail = std::exchange(m_pTail, nullptr);
+    size_t count = std::exchange(m_nElem, 0);
+
+    while (root != nullptr) {
+        Node* temp = std::exchange(root, root->pNext);
+       
+        delete temp;
+    }
+
 }
 
 // TODO: Este operador debe quedar fuera de la clase
