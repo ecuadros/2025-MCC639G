@@ -15,15 +15,15 @@ public:
     using node_pointer = node_type *;
 
     BinaryTreeTraitsNode() noexcept
-        : m_value{}, m_left(nullptr), m_right(nullptr), m_parent(nullptr) {
+        : m_value{}, m_left(nullptr), m_right(nullptr), m_parent(nullptr), m_height(1) {
     }
 
     explicit BinaryTreeTraitsNode(const value_type &value)
-        : m_value(value), m_left(nullptr), m_right(nullptr), m_parent(nullptr) {
+        : m_value(value), m_left(nullptr), m_right(nullptr), m_parent(nullptr), m_height(1) {
     }
 
     explicit BinaryTreeTraitsNode(value_type &&value) noexcept
-        : m_value(std::move(value)), m_left(nullptr), m_right(nullptr), m_parent(nullptr) {
+        : m_value(std::move(value)), m_left(nullptr), m_right(nullptr), m_parent(nullptr), m_height(1) {
     }
 
     BinaryTreeTraitsNode(const BinaryTreeTraitsNode &) = delete;
@@ -34,7 +34,8 @@ public:
         : m_value(std::move(other.m_value)),
           m_left(std::exchange(other.m_left, nullptr)),
           m_right(std::exchange(other.m_right, nullptr)),
-          m_parent(std::exchange(other.m_parent, nullptr)) {
+          m_parent(std::exchange(other.m_parent, nullptr)),
+          m_height(std::exchange(other.m_height, 1)) {
     }
 
     BinaryTreeTraitsNode &operator=(BinaryTreeTraitsNode &&other) noexcept {
@@ -43,6 +44,7 @@ public:
             m_left = std::exchange(other.m_left, nullptr);
             m_right = std::exchange(other.m_right, nullptr);
             m_parent = std::exchange(other.m_parent, nullptr);
+            m_height = std::exchange(other.m_height, 1);
         }
         return *this;
     }
@@ -69,11 +71,15 @@ public:
         if (right) right->m_parent = this;
     }
 
+    std::size_t height() const { return m_height; }
+    void set_height(std::size_t h) { m_height = h; }
+
 private:
     value_type m_value;
     node_pointer m_left;
     node_pointer m_right;
     node_pointer m_parent;
+    std::size_t m_height;
 };
 
 #endif //INC_2025_MCC639G_BINARYTREETRAITSNODE_H

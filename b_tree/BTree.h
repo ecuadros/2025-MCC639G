@@ -25,9 +25,7 @@ public:
     using node_pointer = node_type *;
     using value_type = typename Traits::value_type;
 
-    // Define forward and reverse iterators using the policies
-    using iterator = BTreeTraitsIterator<value_type, Traits::Order, ForwardInOrderPolicy<node_type> >;
-    using reverse_iterator = BTreeTraitsIterator<value_type, Traits::Order, BackwardInOrderPolicy<node_type> >;
+    using iterator = BTreeInOrderIterator<value_type, Traits::Order>;
 
     static constexpr size_t Order = Traits::Order;
 
@@ -93,31 +91,28 @@ public:
         clear_unlocked();
     }
 
-    template<typename Visitor>
-    void preorder_traversal(Visitor visit) const {
+    template<typename Visitor, typename... Args>
+    void preorder_traversal(Visitor visit, Args &&... args) const {
         std::lock_guard<std::mutex> lock(m_mutex);
-        preorder_recursive(m_root, visit);
+        preorder_recursive(m_root, visit, std::forward<Args>(args)...);
     }
 
-    template<typename Visitor>
-    void inorder_traversal(Visitor visit) const {
+    template<typename Visitor, typename... Args>
+    void inorder_traversal(Visitor visit, Args &&... args) const {
         std::lock_guard<std::mutex> lock(m_mutex);
-        inorder_recursive(m_root, visit);
+        inorder_recursive(m_root, visit, std::forward<Args>(args)...);
     }
 
-    template<typename Visitor>
-    void postorder_traversal(Visitor visit) const {
+    template<typename Visitor, typename... Args>
+    void postorder_traversal(Visitor visit, Args &&... args) const {
         std::lock_guard<std::mutex> lock(m_mutex);
-        postorder_recursive(m_root, visit);
+        postorder_recursive(m_root, visit, std::forward<Args>(args)...);
     }
 
     size_t size() const noexcept { return m_size; }
 
     iterator begin() const { return iterator(m_root); }
     iterator end() const noexcept { return iterator(); }
-
-    reverse_iterator rbegin() const { return reverse_iterator(m_root); }
-    reverse_iterator rend() const noexcept { return reverse_iterator(); }
 
     friend std::ostream &operator<<(std::ostream &os, const BTree<Traits> &tree) {
         os << "{ ";
@@ -171,48 +166,48 @@ private:
         }
     }
 
-    template<typename Visitor>
-    void preorder_recursive(node_pointer node, Visitor &visit) const {
+    template<typename Visitor, typename... Args>
+    void preorder_recursive(node_pointer node, Visitor &visit, Args &&... args) const {
         if (!node) return;
 
         for (const auto &key: node->m_keys) {
-            visit(key);
+            visit(key, std::forward<Args>(args)...);
         }
 
         if (!node->m_is_leaf) {
             for (const auto &child: node->m_children) {
-                preorder_recursive(child, visit);
+                preorder_recursive(child, visit, std::forward<Args>(args)...);
             }
         }
     }
 
-    template<typename Visitor>
-    void inorder_recursive(node_pointer node, Visitor &visit) const {
+    template<typename Visitor, typename... Args>
+    void inorder_recursive(node_pointer node, Visitor &visit, Args &&... args) const {
         if (!node) return;
         size_t i;
         for (i = 0; i < node->m_keys.size(); ++i) {
             if (!node->m_is_leaf) {
-                inorder_recursive(node->m_children[i], visit);
+                inorder_recursive(node->m_children[i], visit, std::forward<Args>(args)...);
             }
-            visit(node->m_keys[i]);
+            visit(node->m_keys[i], std::forward<Args>(args)...);
         }
         if (!node->m_is_leaf) {
-            inorder_recursive(node->m_children[i], visit);
+            inorder_recursive(node->m_children[i], visit, std::forward<Args>(args)...);
         }
     }
 
-    template<typename Visitor>
-    void postorder_recursive(node_pointer node, Visitor &visit) const {
+    template<typename Visitor, typename... Args>
+    void postorder_recursive(node_pointer node, Visitor &visit, Args &&... args) const {
         if (!node) return;
 
         if (!node->m_is_leaf) {
             for (const auto &child: node->m_children) {
-                postorder_recursive(child, visit);
+                postorder_recursive(child, visit, std::forward<Args>(args)...);
             }
         }
 
         for (const auto &key: node->m_keys) {
-            visit(key);
+            visit(key, std::forward<Args>(args)...);
         }
     }
 

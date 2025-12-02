@@ -3,7 +3,7 @@
 #include <vector>
 #include <thread>
 #include <utility>
-#include "avl_tree/AVLTree.h"
+#include "binary_tree/avl_tree/AVLTree.h"
 #include <cassert>
 
 void test_traversals_and_io();

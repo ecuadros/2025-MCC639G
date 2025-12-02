@@ -21,9 +21,9 @@ public:
     using node_type = typename Traits::node_type;
     using node_pointer = node_type *;
     using value_type = typename Traits::value_type;
-    
-    using iterator = DoubleLinkedListIterator<value_type, ForwardMovePolicy<node_type> >;
-    using reverse_iterator = DoubleLinkedListIterator<value_type, BackwardMovePolicy<node_type> >;
+
+    using iterator = DoubleLinkedListForwardIterator<value_type>;
+    using reverse_iterator = DoubleLinkedListBackwardIterator<value_type>;
 
     DoubleLinkedList() : m_head(nullptr), m_tail(nullptr), m_size(0) {
     }

@@ -2,7 +2,7 @@
 #define AVL_TREE_TRAITS_ITERATOR_H
 
 #include <stack>
-#include "AVLTreeTraitsNode.h"
+#include "/home/patrick/Documents/study/2025-MCC639G/binary_tree/BinaryTreeTraitsNode.h"
 
 // --- Movement Policies for the AVL Tree Iterator (In-Order) ---
 
@@ -41,7 +41,7 @@ struct BackwardInOrderPolicy {
 template<typename T, typename MovePolicy>
 class AVLTreeTraitsIterator {
 public:
-    using node_type = AVLTreeTraitsNode<T>;
+    using node_type = BinaryTreeTraitsNode<T>;
     using node_pointer = node_type *;
     using value_type = typename node_type::value_type;
     using reference = value_type &;

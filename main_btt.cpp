@@ -34,6 +34,24 @@ void test_traversals_and_io() {
 
     std::cout << "In-order traversal (via iterator): " << tree << std::endl;
 
+    std::cout << "Pre-order traversal (manual): ";
+    tree.preorder_traversal([](int val) {
+        std::cout << val << " ";
+    });
+    std::cout << std::endl;
+
+    std::cout << "In-order traversal (manual): ";
+    tree.inorder_traversal([](int val) {
+        std::cout << val << " ";
+    });
+    std::cout << std::endl;
+
+    std::cout << "Post-order traversal (manual): ";
+    tree.postorder_traversal([](int val) {
+        std::cout << val << " ";
+    });
+    std::cout << std::endl;
+
     std::stringstream ss("20 30 40 50 60 70 80");
     MyIntTree tree_from_stream;
     ss >> tree_from_stream;

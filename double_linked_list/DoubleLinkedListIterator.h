@@ -5,20 +5,8 @@
 #include <iterator>
 #include "DoubleLinkedListNode.h"
 
-template<typename Node>
-struct ForwardMovePolicy {
-    static typename Node::node_pointer advance(typename Node::node_pointer ptr) { return ptr ? ptr->next() : nullptr; }
-    static typename Node::node_pointer retreat(typename Node::node_pointer ptr) { return ptr ? ptr->prev() : nullptr; }
-};
-
-template<typename Node>
-struct BackwardMovePolicy {
-    static typename Node::node_pointer advance(typename Node::node_pointer ptr) { return ptr ? ptr->prev() : nullptr; }
-    static typename Node::node_pointer retreat(typename Node::node_pointer ptr) { return ptr ? ptr->next() : nullptr; }
-};
-
-template<typename T, typename MovePolicy>
-class DoubleLinkedListIterator {
+template<typename T>
+class DoubleLinkedListIteratorBase {
 public:
     using node_type = DoubleLinkedListNode<T>;
     using node_pointer = node_type *;
@@ -28,7 +16,7 @@ public:
     using iterator_category = std::bidirectional_iterator_tag;
     using difference_type = std::ptrdiff_t;
 
-    explicit DoubleLinkedListIterator(node_pointer ptr = nullptr) noexcept
+    explicit DoubleLinkedListIteratorBase(node_pointer ptr = nullptr) noexcept
         : m_ptr(ptr) {
     }
 
@@ -40,39 +28,46 @@ public:
         return &m_ptr->value();
     }
 
-    DoubleLinkedListIterator &operator++() noexcept {
-        m_ptr = MovePolicy::advance(m_ptr);
-        return *this;
+    bool operator==(const DoubleLinkedListIteratorBase &other) const noexcept {
+        return m_ptr == other.m_ptr;
     }
 
-    DoubleLinkedListIterator operator++(int) noexcept {
+    bool operator!=(const DoubleLinkedListIteratorBase &other) const noexcept {
+        return m_ptr != other.m_ptr;
+    }
+
+    DoubleLinkedListIteratorBase operator++(int) noexcept {
         auto tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    DoubleLinkedListIterator &operator--() noexcept {
-        m_ptr = MovePolicy::retreat(m_ptr);
-        return *this;
-    }
-
-    DoubleLinkedListIterator operator--(int) noexcept {
-        auto tmp = *this;
-        --(*this);
-        return tmp;
-    }
-
-    bool operator==(const DoubleLinkedListIterator &other) const noexcept {
-        return m_ptr == other.m_ptr;
-    }
-
-    bool operator!=(const DoubleLinkedListIterator &other) const noexcept {
-        return m_ptr != other.m_ptr;
-    }
-
-private:
+protected:
     node_pointer m_ptr;
 };
 
+template<typename T>
+class DoubleLinkedListForwardIterator : public DoubleLinkedListIteratorBase<T> {
+public:
+    using base = DoubleLinkedListIteratorBase<T>;
+    using base::base; // Inherit constructors
+
+    DoubleLinkedListForwardIterator &operator++() noexcept {
+        if (this->m_ptr) this->m_ptr = this->m_ptr->next();
+        return *this;
+    }
+};
+
+template<typename T>
+class DoubleLinkedListBackwardIterator : public DoubleLinkedListIteratorBase<T> {
+public:
+    using base = DoubleLinkedListIteratorBase<T>;
+    using base::base; // Inherit constructors
+
+    DoubleLinkedListBackwardIterator &operator++() noexcept {
+        if (this->m_ptr) this->m_ptr = this->m_ptr->prev();
+        return *this;
+    }
+};
 
 #endif //INC_2025_MCC639G_DOUBLELINKEDLISTTRAITSITERATOR_H
