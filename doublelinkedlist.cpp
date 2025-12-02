@@ -30,12 +30,20 @@ void DemoDoubleLinkedList(){
     std::cout << "Lista original (l1): ";
     std::cout << l1 << std::endl;
     std::cout << "--> Lista copiada"<< std::endl;
+
+    // move constructor test
+    std::cout<< "Move Cosntructor test" << std::endl;
+    CDoubleLinkedList<AscendingTrait<T1> > lmoved(std::move(l1));
+    std::cout << "Lista original (l1): ";
+    std::cout << l1 << std::endl;
+    std::cout << "--> Lista copiada"<< std::endl;
+
     // inssertng an element
     foreach(l1.begin(), l1.end(), add2);
-    std::cout << "Actual Lista original modificada: ";
+    std::cout << "Actual Lista movida: ";
     std::cout << l1 << std::endl;
-    std::cout << "Actual Lista copiada: ";
-    std::cout << lcopied << std::endl;
+    std::cout << "Actual Lista movida: ";
+    std::cout << lmoved << std::endl;
     std::cout << "\nDestructor Implemented\n";
     
     // read test

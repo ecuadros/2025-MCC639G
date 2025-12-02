@@ -229,10 +229,17 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other)
 // Move Constructor
 template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
-    m_pRoot    = std::move(other.m_pRoot);
-    m_nElem    = std::move(other.m_nElem);
+    std::unique_lock<std::shared_mutex> lock(other.m_mutex);
+    // cpoia de punteros
+    m_pRoot = other.m_pRoot;
+    m_pTail = other.m_pTail;
+    m_nElem = other.m_nElem;
     m_fCompare = std::move(other.m_fCompare);
-    std::unique_lock lock(m_mutex);
+    // clean
+    other.m_pTail = nullptr;
+    other.m_pRoot = nullptr;
+    other.m_nElem = 0;
+    
 }
 
 // TODO: Implementar y liberar la memoria de cada Node. DONE
