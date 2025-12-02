@@ -41,12 +41,12 @@ public:
 //   - IsForward = true:  ++ avanza con GetNext() (forward)
 //   - IsForward = false: ++ avanza con GetPrev() (backward)
 
-template <typename Container, bool IsForward = true>
+template <typename Container>
 class double_linkedlist_iterator{
 private:
     using value_type = typename Container::value_type;
     using Node       = typename Container::Node;
-    using iterator   = double_linkedlist_iterator<Container, IsForward>;
+    using iterator   = double_linkedlist_iterator<Container>;
 
     Container *m_pList = nullptr;
     Node      *m_pNode = nullptr;
@@ -65,7 +65,7 @@ public:
     // - Si IsForward=false: usa GetPrev() (avanza hacia atrás)
     iterator operator++(){ 
         if(m_pNode){
-            if constexpr (IsForward)
+            if constexpr ()
                 m_pNode = m_pNode->GetNext();
             else
                 m_pNode = m_pNode->GetPrev();
