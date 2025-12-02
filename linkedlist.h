@@ -56,7 +56,7 @@ public:
 
     // TODO: Move contructor
     CLinkedList(CLinkedList &&other){
-        std::scoped_lock lock(other.m_listMutex);
+        std::scoped_lock lock(m_listMutex,other.m_listMutex);
         m_pHead = std::exchange(other.m_pHead, nullptr);
     };
 
