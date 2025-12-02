@@ -16,6 +16,7 @@ void DemoConcurrentLinkedList(){
     CConcurrentLinkedList<int> lcopied(l1);
     
     // std::cout << x;
+    // copy cosntructor
     std::cout << ">>> Copy cosntructor" << std::endl;
     std::cout << "Lista original (l1): ";
     std::cout << l1 << std::endl;
@@ -27,10 +28,17 @@ void DemoConcurrentLinkedList(){
     std::cout << "Actual Lista copiada: ";
     std::cout << lcopied << std::endl;
 
+    // move constructor lcopied to lmoved
+    CConcurrentLinkedList<int> lmoved(std::move(lcopied));
+    std::cout << "\n>>> Move cosntructor" << std::endl;
+    std::cout << "Lista incicial moved to lmoved: ";
+    std::cout << "Lista origen: "<<lcopied << std::endl;
+    std::cout << "--> Lista destino: "<<  lmoved <<std::endl;
+    
     std::cout << "\n>>> Test concurrencia" << std::endl;
     std::vector<std::thread> thrds;
     CConcurrentLinkedList<int> l2;
-    for (int i=0; i<10; ++i){
+    for (int i=0; i<1000; ++i){
         thrds.emplace_back([&l2, i](){
             int value = i*10;
             Ref ref   = i;
@@ -43,8 +51,22 @@ void DemoConcurrentLinkedList(){
     for (auto& t : thrds){
         t.join();
     }
-    std::cout << "Lista final" <<l2<<std::endl;
+    
+    
+    // Iterator
+    
+
+    std::cout << "Iterando la lista: valor x 2"<< std::endl;
+    // Gracias a begin() y end(), ahora esto funciona:
+    for (int &valor : lmoved) {
+        std::cout << valor*2 << ", ";
+    }
+    std::cout << std::endl;
+    
+    
+    //std::cout << "Lista final" <<l2<<std::endl;
     std::cout << "FIN"<<std::endl;
+
 }
 
-// Demo adicional: prueba de condiciones de carrera sin mutex (para comparación)
+

@@ -9,30 +9,39 @@ template <typename T> class CConcurrentLinkedList;
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const CConcurrentLinkedList<T>& list);
 
-/*
+
+// Iterador
 template <typename T>
-class LLNode{
+class Iterator {
 private:
-    using    Type = T;
-    using    Node = LLNode<T>;
-    Type     m_data;
-    Ref      m_ref;
-    Node    *m_pNext = nullptr;
+    using Node = LLNode<T>;
+    Node* m_pCurrent;
 
 public:
-    LLNode(Type &elem, Ref ref, LLNode<T> *pNext = nullptr)
-        : m_data(elem), m_pNext(pNext){
-    }
-    Type   GetData()    { return m_data;     }
-    Type  &GetDataRef() { return m_data;     }
-    LLNode * GetNext()    { return m_pNext;    }
-    LLNode *&GetNextRef() { return m_pNext;    }
-    Ref GetRef(){ return m_ref;}
-    
+    // Constructor
+    Iterator(Node* node) : m_pCurrent(node) {}
 
-    
+    // Operador de desreferencia 
+    T& operator*() const {
+        return m_pCurrent->GetDataRef();
+    }
+
+    // Operador ++
+    Iterator<T>& operator++() {
+        if (m_pCurrent) {
+            m_pCurrent = m_pCurrent->GetNext();
+        }
+        return *this;
+    }
+
+    // Operador de comparación (!=)
+    bool operator!=(const Iterator<T>& other) const {
+        return m_pCurrent != other.m_pCurrent;
+    }
 };
-*/
+
+
+
 
 template <typename T>
 class CConcurrentLinkedList{
@@ -45,14 +54,25 @@ public:
     // Constructor
     CConcurrentLinkedList();// : m_pHead(nullptr) {}
     // TODO: Constructor Copia DONE
-    CConcurrentLinkedList(CConcurrentLinkedList &other);
+    CConcurrentLinkedList(const CConcurrentLinkedList &other);
 
     // TODO: Move contructor DONE
-    CConcurrentLinkedList(CConcurrentLinkedList &&other);
+    CConcurrentLinkedList(CConcurrentLinkedList &&other) noexcept;
+    
+    using iterator = Iterator<T>; 
+
+    //  begin() y end()
+    iterator begin() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return iterator(m_pHead);
+    }
+
+    iterator end() {
+        return iterator(nullptr);
+    }
 
     // Destructor seguro DONE
     virtual ~CConcurrentLinkedList();
-
     // concurrent 
     void Insert(Type &elem, Ref ref);
     
@@ -76,6 +96,15 @@ public:
         }
         os << "]";
     }
+
+    // control de concurrencia
+    void Lock(){
+        m_mutex.lock();
+    }
+    void Unlock(){
+        m_mutex.unlock();
+    }
+
 private:
     // TODO: Implementar
     void InternalInsert(Node *&rParent, Type &elem, Ref ref);
@@ -90,7 +119,7 @@ std::ostream& operator<<(std::ostream &os, const CConcurrentLinkedList<T> &list)
 
 // copy constructor: DONE
 template <typename T>
-CConcurrentLinkedList<T>::CConcurrentLinkedList(CConcurrentLinkedList &other) : m_pHead(nullptr)
+CConcurrentLinkedList<T>::CConcurrentLinkedList(const CConcurrentLinkedList &other) : m_pHead(nullptr)
 {
     std::lock_guard<std::mutex> guard(other.m_mutex);
     if (!other.m_pHead) return; // empty list
@@ -114,6 +143,8 @@ CConcurrentLinkedList<T>::CConcurrentLinkedList(CConcurrentLinkedList &other) : 
 
 template <typename T>
 void CConcurrentLinkedList<T>::Insert(Type &elem, Ref ref){
+    std::lock_guard<std::mutex> lock(m_mutex);
+
     InternalInsert(m_pHead, elem, ref);
 }
 
@@ -136,12 +167,14 @@ CConcurrentLinkedList<T>::CConcurrentLinkedList()
 
 // move constructor
 template <typename T>
-CConcurrentLinkedList<T>::CConcurrentLinkedList(CConcurrentLinkedList &&other)
+CConcurrentLinkedList<T>::CConcurrentLinkedList(CConcurrentLinkedList &&other) noexcept
 {
     std::lock_guard<std::mutex> guard(other.m_mutex);
     m_pHead = other.m_pHead;
     other.m_pHead = nullptr;
 }
+
+
 
 // Destructor
 template <typename T>
