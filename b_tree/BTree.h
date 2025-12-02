@@ -55,8 +55,9 @@ public:
     }
 
     BTree(BTree &&other) noexcept
-        : m_root(std::exchange(other.m_root, nullptr)),
-          m_size(std::exchange(other.m_size, 0)) {
+    {
+        m_root = std::exchange(other.m_root, nullptr);
+        m_size = std::exchange(other.m_size, 0);
     }
 
     BTree &operator=(BTree &&other) noexcept {

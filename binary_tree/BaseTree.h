@@ -41,8 +41,9 @@ public:
     }
 
     BaseTree(BaseTree &&other) noexcept
-        : m_root(std::exchange(other.m_root, nullptr)),
-          m_size(std::exchange(other.m_size, 0)) {
+    {
+        m_root = std::exchange(other.m_root, nullptr);
+        m_size = std::exchange(other.m_size, 0);
     }
 
     BaseTree &operator=(BaseTree &&other) noexcept {
@@ -76,6 +77,10 @@ public:
     void postorder_traversal(Visitor visit, Args &&... args) const {
         std::lock_guard<std::mutex> lock(m_mutex);
         postorder_recursive(m_root, visit, std::forward<Args>(args)...);
+    }
+
+    void print(std::ostream &os = std::cout) const {
+        os << *static_cast<const Derived *>(this);
     }
 
     size_t size() const noexcept { return m_size; }
