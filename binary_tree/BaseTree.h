@@ -42,6 +42,7 @@ public:
 
     BaseTree(BaseTree &&other) noexcept
     {
+        std::lock_guard<std::mutex> lock(other.m_mutex);
         m_root = std::exchange(other.m_root, nullptr);
         m_size = std::exchange(other.m_size, 0);
     }

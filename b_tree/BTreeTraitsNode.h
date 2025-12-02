@@ -9,11 +9,13 @@ public:
     using value_type = T;
     using node_pointer = BTreeTraitsNode<T, Order> *;
 
+    node_pointer m_parent;
     bool m_is_leaf;
     std::vector<value_type> m_keys;
     std::vector<node_pointer> m_children;
 
-    explicit BTreeTraitsNode(bool is_leaf) : m_is_leaf(is_leaf) {
+    explicit BTreeTraitsNode(bool is_leaf, node_pointer parent = nullptr)
+        : m_parent(parent), m_is_leaf(is_leaf) {
         m_keys.reserve(2 * Order - 1);
         m_children.reserve(2 * Order);
     }

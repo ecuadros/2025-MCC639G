@@ -53,7 +53,6 @@ public:
         : m_head(std::exchange(other.m_head, nullptr)),
           m_tail(std::exchange(other.m_tail, nullptr)),
           m_size(std::exchange(other.m_size, 0)) {
-        std::lock_guard<std::mutex> lock(other.m_mutex);
     }
 
     LinkedList &operator=(LinkedList &&other) noexcept {

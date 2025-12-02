@@ -25,7 +25,8 @@ public:
     using node_pointer = node_type *;
     using value_type = typename Traits::value_type;
 
-    using iterator = BTreeInOrderIterator<value_type, Traits::Order>;
+    using iterator = BTreeInOrderForwardIterator<value_type, Traits::Order>;
+    using reverse_iterator = BTreeInOrderBackwardIterator<value_type, Traits::Order>;
 
     static constexpr size_t Order = Traits::Order;
 
@@ -56,6 +57,7 @@ public:
 
     BTree(BTree &&other) noexcept
     {
+        std::lock_guard<std::mutex> lock(other.m_mutex);
         m_root = std::exchange(other.m_root, nullptr);
         m_size = std::exchange(other.m_size, 0);
     }
@@ -114,6 +116,9 @@ public:
 
     iterator begin() const { return iterator(m_root); }
     iterator end() const noexcept { return iterator(); }
+
+    reverse_iterator rbegin() const { return reverse_iterator(m_root); }
+    reverse_iterator rend() const noexcept { return reverse_iterator(); }
 
     friend std::ostream &operator<<(std::ostream &os, const BTree<Traits> &tree) {
         os << "{ ";
