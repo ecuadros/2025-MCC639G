@@ -3,6 +3,7 @@
 #include <iostream>
 #include "types.h"
 #include "traits.h"
+#include <mutex>
 
 template <typename Traits>
 class DLLNode{
@@ -186,6 +187,7 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(){}
 //      Hacer loop copiando cada elemento
 template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other){
+
 }
 
 // Move Constructor
@@ -194,6 +196,17 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
     m_pRoot    = std::move(other.m_pRoot);
     m_nElem    = std::move(other.m_nElem);
     m_fCompare = std::move(other.m_fCompare);
+    std::lock_guard<std::mutex> lock(other.mutex);
+    Node *pNode = other.m_pRoot;
+    while (pNode)
+    {
+        value_type val = pNode->GetData();
+        Ref ref = pNode->GetRef();
+        Insert(val, ref);
+        pNode = pNode->GetNext();
+    }
+    
+
 }
 
 // TODO: Implementar y liberar la memoria de cada Node
