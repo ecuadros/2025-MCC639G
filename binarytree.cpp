@@ -54,8 +54,21 @@ void DemoBinaryTree() {
     file.close();
     std::cout << "-> file saved"<< std::endl;
 
+    // Copy constructor
+    CBinaryTree<BinaryTreeAscTraits<T1>> tree_copied(tree);
+    std::cout << "Copied as A"<< std::endl;
+    tree_copied.print(cout);
+
+    // Move Constructor
+    CBinaryTree<BinaryTreeAscTraits<T1>> tree_moved(std::move(tree_copied));
+    std::cout << "A moved to B ..."<< std::endl;
+    std::cout << "A: " <<tree_copied << std::endl;
+    std::cout << "B: " <<tree_moved << std::endl;
+    
+    //tree_copied.print(cout);
+
     // Reat test
-    std::cout << "Read Test (preorder)"<< std::endl;
+    std::cout << "\nRead Test (preorder)"<< std::endl;
     
     CBinaryTree<BinaryTreeAscTraits<int>> read_tree;
     cout << "\nLoading from file: " << "out_preorder_binarytree.txt" << endl;

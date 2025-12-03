@@ -87,20 +87,20 @@ public:
 };
 
 template <typename Container>
-class binary_tree_iterator : public general_iterator<Container, binary_tree_iterator<Container>> {
+class binary_tree_forward_iterator : public general_iterator<Container, binary_tree_forward_iterator<Container>> {
 public:
     typedef typename Container::Node Node;
-    typedef binary_tree_iterator<Container> myself;
+    typedef binary_tree_forward_iterator<Container> myself;
     typedef general_iterator<Container, myself> Parent;
 
-    binary_tree_iterator(Container* pContainer, Node* pNode) : Parent(pContainer, pNode) {}
-    binary_tree_iterator(const myself& other) : Parent(other) {}
-    binary_tree_iterator(myself&& other) : Parent(std::move(other)) {}
+    binary_tree_forward_iterator(Container* pContainer, Node* pNode) : Parent(pContainer, pNode) {}
+    binary_tree_forward_iterator(const myself& other) : Parent(other) {}
+    binary_tree_forward_iterator(myself&& other) : Parent(std::move(other)) {}
 
     myself& operator++() {
         if (!this->m_pNode) return *this;
         
-        // Si tiene hijo derecho, ir al más izquierdo del hijo derecho
+        // Si tiene hijo derecho, ir al mas izquierdo del hijo derecho
         if (this->m_pNode->getChild(1)) {
             this->m_pNode = this->m_pNode->getChild(1);
             while (this->m_pNode->getChild(0)) {
@@ -140,7 +140,7 @@ public:
     typedef typename Traits::Node Node;
     typedef typename Traits::CompareFn CompareFn;
     typedef CBinaryTree<Traits> myself;
-    typedef binary_tree_iterator<myself> iterator;
+    typedef binary_tree_forward_iterator<myself> iterator;
 
 private:
     Node* m_pRoot;
@@ -161,8 +161,11 @@ public:
     }
     
     // Move Constructor
-    CBinaryTree(myself&& other) : m_pRoot(other.m_pRoot), m_size(other.m_size) {
+    CBinaryTree(myself&& other) : m_pRoot(nullptr), m_size(0) {
         lock_guard<recursive_mutex> lock(other.m_mutex);
+        m_pRoot = other.m_pRoot;
+        m_size = other.m_size;
+
         other.m_pRoot = nullptr;
         other.m_size = 0;
     }
@@ -254,7 +257,8 @@ public:
     }
     void print(ostream& os) { 
         lock_guard<recursive_mutex> lock(m_mutex);
-        print(m_pRoot, os, 0); 
+        //print(m_pRoot, os, 0); 
+        inorder(os);
     }
     
 
