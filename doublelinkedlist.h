@@ -197,8 +197,7 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
     std::lock_guard<std::mutex> lock(other.mutex);
     m_pRoot = std::exchange(other.m_pRoot, nullptr);
     m_nElem = std::exchange(other.m_nElem, 0);
-    m_fCompare = std::exchange(other.m_fCompare, nullptr);
-   
+    m_fCompare = std::exchange(other.m_fCompare, nullptr);   
 
 }
 
@@ -212,8 +211,7 @@ CDoubleLinkedList<Traits>::~CDoubleLinkedList()
     size_t count = std::exchange(m_nElem, 0);
 
     while (root != nullptr) {
-        Node* temp = std::exchange(root, root->pNext);
-       
+        Node* temp = std::exchange(root, root->pNext);       
         delete temp;
     }
 
