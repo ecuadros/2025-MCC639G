@@ -2,8 +2,8 @@
 #include "test.h"
 #include "util.h"
 #include "clasestemplate.h"
-#include "linkedlist.h"
-#include "doublelinkedlist.h"
+//#include "linkedlist.h"
+//#include "doublelinkedlist.h"
 #include "binarytree.h"
 #include "pointers.h"
 // #include "vector.h"
@@ -37,5 +37,8 @@ int main(){
     //DemoLinkedList();
     //DemoDoubleLinkedList();
     DemoBinaryTree();
+//=======
+    //DemoDoubleLinkedList();
+//>>>>>>> 817223c (implementando copy constructor)
     return 0;
 }
