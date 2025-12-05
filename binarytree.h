@@ -37,8 +37,8 @@ public:
     bool operator==(const IteratorType& other) const { return m_pNode == other.m_pNode; }
     bool operator!=(const IteratorType& other) const { return m_pNode != other.m_pNode; }
     
-    typename Container::value_type& operator*() { return m_pNode->getDataRef(); }
-    typename Container::value_type* operator->() { return &(m_pNode->getDataRef()); }
+    typename Container::value_type& operator*() { return m_pNode->m_data; }
+    typename Container::value_type* operator->() { return &(m_pNode->m_data); }
 };
 
 template <typename Traits>
@@ -183,14 +183,16 @@ private:
     Node* m_pRoot;
     size_t m_size;
     CompareFn Compfn;
-    mutable recursive_mutex m_mutex;
+    //mutable recursive_mutex m_mutex;
+    mutable std::shared_mutex m_mutex;
 public: 
     // Constructor por defecto
     CBinaryTree() : m_pRoot(nullptr), m_size(0) {}
     
     // Copy Constructor
     CBinaryTree(const myself& other) : m_pRoot(nullptr), m_size(0) {
-        lock_guard<recursive_mutex> lock(other.m_mutex);
+        //lock_guard<recursive_mutex> lock(other.m_mutex);
+        std::shared_lock <std::shared_mutex> lock(other.m_mutex);
         if (other.m_pRoot) {
             m_pRoot = copyTree(other.m_pRoot, nullptr);
             m_size = other.m_size;
@@ -199,7 +201,8 @@ public:
     
     // Move Constructor
     CBinaryTree(myself&& other) : m_pRoot(nullptr), m_size(0) {
-        lock_guard<recursive_mutex> lock(other.m_mutex);
+        //lock_guard<recursive_mutex> lock(other.m_mutex);
+        std::unique_lock<std::shared_mutex> lock(other.m_mutex);
         m_pRoot = other.m_pRoot;
         m_size = other.m_size;
 
@@ -222,36 +225,40 @@ public:
     
     // Destructor implementado
     virtual ~CBinaryTree() {
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
+        std::unique_lock<std::shared_mutex> lock(m_mutex);
         clear();
     }
     
     void clear() {
-        lock_guard<recursive_mutex> lock(m_mutex);
+        std::unique_lock<std::shared_mutex> lock(m_mutex);
         clearTree(m_pRoot);
         m_pRoot = nullptr;
         m_size = 0;
     }
 
     size_t size() const { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         return m_size; 
     }
     
     bool empty() const { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         return m_size == 0; 
     }
     
     // TODO: insert must receive two paramaters: elem and LinkedValueType value
     virtual void insert(value_type elem, Ref value ) { 
+        std::unique_lock<std::shared_mutex> lock(m_mutex);
         internal_insert(elem, value, nullptr, m_pRoot);  
     }
 
     // Iterators
     // forward  ->
     forward_iterator begin(){
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         if(!m_pRoot) return forward_iterator(this, nullptr);
         // inicio : nodo mas a la izquierda
         Node* pNode = m_pRoot;
@@ -267,7 +274,7 @@ public:
 
     //backward
     backward_iterator rbegin(){
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
         if (!m_pRoot) return backward_iterator(this, nullptr);
         // inicio es el nodo + a la derecha
         Node* pNode = m_pRoot;
@@ -316,19 +323,19 @@ protected:
 public:
     // initial functions
     void inorder(ostream& os) { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
         inorder(m_pRoot, os, 0); 
     }
     void postorder(ostream& os) { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
         postorder(m_pRoot, os, 0); 
     }
     void preorder(ostream& os) { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
         preorder(m_pRoot, os, 0); 
     }
     void print(ostream& os) { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
         //print(m_pRoot, os, 0); 
         inorder(os);
     }
@@ -425,7 +432,8 @@ public:
     // writes only in preorder
     void Write(ostream& os) {
         // preorder by default
-        lock_guard< recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
+        //lock_guard< recursive_mutex> lock(m_mutex);
         //os << m_size << " ";
         preorder_variadic([&os](value_type& data) {
             os << data << " ";
@@ -447,7 +455,7 @@ public:
     }
     // reads in preorder/ such as write
     bool ReadFromFile(const string& filename) {
-        std::lock_guard<std::recursive_mutex> lock(m_mutex);
+        //std::lock_guard<std::recursive_mutex> lock(m_mutex);
         
         std::ifstream file(filename);
         if (!file.is_open()) {
