@@ -358,10 +358,8 @@ public:
 // ====================================================================
 // PRINT
 // ====================================================================
-
-  void print (ostream &os) { print (m_pRoot, 0, os); }
-
-  void print(Node *pNode, size_t level, ostream& out) {
+  // PRINT INORDER
+  void print(ostream &os) {
       inorder([&](Node* pNode, size_t level, ostream& out) {
           Node *pParent = pNode->getParent(); 
           out << string(level * 3, ' ') << "| " << pNode->getDataRef()
