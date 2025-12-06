@@ -1,11 +1,13 @@
-#include <iostream>
+#include "avl.h"
+#include "binarytree.h"
+#include "btree.h"
+#include "clasestemplate.h"
+#include "doublelinkedlist.h"
+#include "linkedlist.h"
+#include "pointers.h"
 #include "test.h"
 #include "util.h"
-#include "clasestemplate.h"
-#include "linkedlist.h"
-#include "doublelinkedlist.h"
-#include "binarytree.h"
-#include "pointers.h"
+#include <iostream>
 // #include "vector.h"
 
 using namespace std;
@@ -20,22 +22,24 @@ using namespace std;
 // 8. Aldo Arriola
 // 9. David Quispe
 
-// Forma 1 de Compilar: 
-// g++ -std=c++17 -Wall -g -pthread -o main main.cpp test.cpp
+// Forma 1 de Compilar:
+// g++ -std=c++17 -Wall -g -pthread -o main main.cpp test.cpp ContainersDemo.cpp
 // Forma #2 de Compilar (requiere el archivo Makefile)
 // make
 
-int main(){
-    cout << "Hello EDA - MCC639G" <<endl;
-    // DemoTest();
-    // DemoUtil();
-    // DemoClasesTemplate();
-    // DemoBasicPointers();
+int main() {
+  cout << "Hello EDA - MCC639G" << endl;
+  // DemoTest();
+  // DemoUtil();
+  // DemoClasesTemplate();
+  // DemoBasicPointers();
 
-    // DemoVector();
-    
-    DemoLinkedList();
-    DemoDoubleLinkedList();
-    DemoBinaryTree();
-    return 0;
+  // DemoVector();
+
+  // DemoLinkedList();
+  // DemoDoubleLinkedList();
+  DemoBinaryTree();
+  DemoAVLTree();
+  DemoBTree();
+  return 0;
 }
