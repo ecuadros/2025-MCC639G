@@ -213,7 +213,11 @@ public:
     // Operador de asinacion
     myself& operator=(const myself& other) {
         if (this != &other) {
-            scoped_lock lock(m_mutex, other.m_mutex);
+            //scoped_lock lock(m_mutex, other.m_mutex);
+            // Prevenir deadlocks usando std::lock para obtener ambos locks
+            std::unique_lock<std::shared_mutex> my_lock(m_mutex, std::defer_lock);
+            std::shared_lock<std::shared_mutex> other_lock(other.m_mutex, std::defer_lock);
+            std::lock(my_lock, other_lock);
             clear();
             if (other.m_pRoot) {
                 m_pRoot = copyTree(other.m_pRoot, nullptr);
@@ -257,7 +261,6 @@ public:
     // Iterators
     // forward  ->
     forward_iterator begin(){
-        //lock_guard<recursive_mutex> lock(m_mutex);
         std::shared_lock<std::shared_mutex> lock(m_mutex);
         if(!m_pRoot) return forward_iterator(this, nullptr);
         // inicio : nodo mas a la izquierda
@@ -274,7 +277,8 @@ public:
 
     //backward
     backward_iterator rbegin(){
-        //lock_guard<recursive_mutex> lock(m_mutex);
+        
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         if (!m_pRoot) return backward_iterator(this, nullptr);
         // inicio es el nodo + a la derecha
         Node* pNode = m_pRoot;
@@ -324,18 +328,22 @@ public:
     // initial functions
     void inorder(ostream& os) { 
         //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         inorder(m_pRoot, os, 0); 
     }
     void postorder(ostream& os) { 
         //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         postorder(m_pRoot, os, 0); 
     }
     void preorder(ostream& os) { 
         //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         preorder(m_pRoot, os, 0); 
     }
     void print(ostream& os) { 
         //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         //print(m_pRoot, os, 0); 
         inorder(os);
     }
@@ -345,19 +353,19 @@ public:
     // variadic fucntions
     template<typename Function, typename... Args>
     void preorder_variadic(Function func, Args&&... args) {
-        lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         preorder_var(m_pRoot, func, std::forward<Args>(args)...);
     }
     
     template<typename Function, typename... Args>
     void inorder_variadic(Function func, Args&&... args) {
-        lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         inorder_var(m_pRoot, func, std::forward<Args>(args)...);
     }
     
     template<typename Function, typename... Args>
     void postorder_variadic(Function func, Args&&... args) {
-        lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         postorder_var(m_pRoot, func, std::forward<Args>(args)...);
     }
 
@@ -389,15 +397,15 @@ protected:
         }
     }
     
-    void print(Node* pNode, ostream& os, size_t level) {
-        if (pNode) {
-            print(pNode->getChild(1), os, level + 1);
-            os << string(level * 6, ' ') << pNode->getData() 
-               << "(" << (pNode->getParent() ? std::to_string(pNode->getDataRef()) : std::to_string(pNode->getDataRef())+")(Root") 
-               << ")" << endl;
-            print(pNode->getChild(0), os, level + 1);
-        }
-    }
+    // void print(Node* pNode, ostream& os, size_t level) {
+    //     if (pNode) {
+    //         print(pNode->getChild(1), os, level + 1);
+    //         os << string(level * 6, ' ') << pNode->getData() 
+    //            << "(" << (pNode->getParent() ? std::to_string(pNode->getDataRef()) : std::to_string(pNode->getDataRef())+")(Root") 
+    //            << ")" << endl;
+    //         print(pNode->getChild(0), os, level + 1);
+    //     }
+    // }
 
     // variadic
     template<typename Function, typename... Args>
