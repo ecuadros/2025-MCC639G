@@ -10,6 +10,7 @@ template <typename Traits>
 class DLLNode{
 private:
     using    value_type = typename Traits::value_type;
+    using    Ref    = typename Traits::ref_type;
     using    Node       = DLLNode<Traits>;
 
     // Fields go here
@@ -187,8 +188,16 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(){}
 // TODO Constructor por copia
 //      Hacer loop copiando cada elemento
 template <typename Traits>
-CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other){
+CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other): m_pRoot(nullptr), m_pTail(nullptr), m_nElem(0), m_fCompare(other.m_fCompare)
+{
+    std::lock_guard<std::mutex> lock(other.mutex);
+    m_fCompare = other.m_fCompare;
 
+    Node* current = other.m_pRoot;
+    while (current) {
+        Insert(current->GetData(), current->GetRef());
+        current = current->GetNext();
+    }
 }
 
 // Move Constructor
@@ -196,8 +205,9 @@ template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
     std::lock_guard<std::mutex> lock(other.mutex);
     m_pRoot = std::exchange(other.m_pRoot, nullptr);
+    m_pTail = std::exchange(other.m_pTail, nullptr);
     m_nElem = std::exchange(other.m_nElem, 0);
-    m_fCompare = std::exchange(other.m_fCompare, nullptr);   
+    m_fCompare = std::exchange(other.m_fCompare, nullptr);
 
 }
 
