@@ -178,6 +178,15 @@ protected:
     return internal_insert(elem, ref, rpOrigin, rpOrigin->getChildRef(branch));
   }
 
+  Node *copyNodes(Node *pNode, Node *pParent) {
+    if (!pNode)
+      return nullptr;
+    Node *newNode = CreateNode(pParent, pNode->getData(), pNode->getRef());
+    newNode->setChild(copyNodes(pNode->getChild(0), newNode), 0);
+    newNode->setChild(copyNodes(pNode->getChild(1), newNode), 1);
+    return newNode;
+  }
+
 public:
   // Constructor por defecto
   CBinaryTree() : m_pRoot(nullptr), m_size(0) {}
@@ -187,9 +196,8 @@ public:
   // ====================================================================
   CBinaryTree(const CBinaryTree &other) {
     std::scoped_lock lock(m_mutex, other.m_mutex);
-    // TODO: Implementar copia profunda del árbol
-    m_pRoot = nullptr;
-    m_size = 0;
+    m_size = other.m_size;
+    m_pRoot = copyNodes(other.m_pRoot, nullptr);
   }
 
   // ====================================================================

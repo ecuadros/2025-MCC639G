@@ -4,11 +4,6 @@
 #include "binarytree.h"
 #include <map>
 
-// ====================================================================
-// TRAITS AVL: Usan CBinaryTreeNode con campo altura adicional en árbol
-// Para mantener compatibilidad total con CBinaryTree, usamos CBinaryTreeNode
-// y manejamos la altura en el árbol (no en el nodo)
-// ====================================================================
 template <typename _T> struct AVLAscTraits {
   using T = _T;
   using Node = CBinaryTreeNode<AVLAscTraits<_T>>;
