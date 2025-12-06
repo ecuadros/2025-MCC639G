@@ -179,7 +179,8 @@ public:
     typedef CBinaryTree<Traits> myself;
     typedef binary_tree_forward_iterator<myself> forward_iterator;
     typedef binary_tree_backward_iterator<myself> backward_iterator;
-private:
+//private:
+protected:
     Node* m_pRoot;
     size_t m_size;
     CompareFn Compfn;
