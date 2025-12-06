@@ -222,7 +222,9 @@ CBinaryTree(const CBinaryTree& other)
 CBinaryTree(CBinaryTree &&other)
 {
     std::scoped_lock lock(m_mutex, other.m_mutex)
-    m_pRoot = std::exchange()
+    m_pRoot = std::exchange(other.m_pRoot, nullptr);
+    m_size = std::exchange(other.m_size, nullptr);
+    Compfn = std::move(other.Compfn);
 
 }
     
