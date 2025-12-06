@@ -14,6 +14,7 @@ public:
   // TODO: Change T by KeyNode
   using value_type = typename Traits::T;
   using Node = CBinaryTreeNode<T>;
+  using Ref = typename Traits::RefType;
 
 private:
     T       m_data;
@@ -206,6 +207,26 @@ public:
     // TODO: Toledo Oscar
     void Read(istream &is)  { /* TODO */  }
 };
+
+//constructor por copia
+//template <typename Traits>
+CBinaryTree(const CBinaryTree& other) 
+{
+    std::scoped_lock lock(m_mutex, other.m_mutex)
+    m_pRoot = copyTree(other.m_pRoot, nullptr);
+    m_size = other.m_size;
+}
+
+//move constructor
+//template <typename Traits>
+CBinaryTree(CBinaryTree &&other)
+{
+    std::scoped_lock lock(m_mutex, other.m_mutex)
+    m_pRoot = std::exchange()
+
+}
+    
+
 
 // TODO: Arriola Aldo
 // operator <<
