@@ -37,8 +37,8 @@ public:
     bool operator==(const IteratorType& other) const { return m_pNode == other.m_pNode; }
     bool operator!=(const IteratorType& other) const { return m_pNode != other.m_pNode; }
     
-    typename Container::value_type& operator*() { return m_pNode->getDataRef(); }
-    typename Container::value_type* operator->() { return &(m_pNode->getDataRef()); }
+    typename Container::value_type& operator*() { return m_pNode->m_data; }
+    typename Container::value_type* operator->() { return &(m_pNode->m_data); }
 };
 
 template <typename Traits>
@@ -56,7 +56,6 @@ public:
     vector<Node*> m_pChild;
 
 public:
-    // CORREGIDO: Orden correcto de inicialización
     CBinaryTreeNode(Node* pParent, value_type data, Ref ref, 
                    Node* p0 = nullptr, Node* p1 = nullptr) 
         : m_data(data), m_pParent(pParent), m_ref(ref), m_pChild(2, nullptr) {
@@ -88,20 +87,20 @@ public:
 };
 
 template <typename Container>
-class binary_tree_iterator : public general_iterator<Container, binary_tree_iterator<Container>> {
+class binary_tree_forward_iterator : public general_iterator<Container, binary_tree_forward_iterator<Container>> {
 public:
     typedef typename Container::Node Node;
-    typedef binary_tree_iterator<Container> myself;
+    typedef binary_tree_forward_iterator<Container> myself;
     typedef general_iterator<Container, myself> Parent;
 
-    binary_tree_iterator(Container* pContainer, Node* pNode) : Parent(pContainer, pNode) {}
-    binary_tree_iterator(const myself& other) : Parent(other) {}
-    binary_tree_iterator(myself&& other) : Parent(std::move(other)) {}
+    binary_tree_forward_iterator(Container* pContainer, Node* pNode) : Parent(pContainer, pNode) {}
+    binary_tree_forward_iterator(const myself& other) : Parent(other) {}
+    binary_tree_forward_iterator(myself&& other) : Parent(std::move(other)) {}
 
     myself& operator++() {
         if (!this->m_pNode) return *this;
         
-        // Si tiene hijo derecho, ir al más izquierdo del hijo derecho
+        // Si tiene hijo derecho, ir al mas izquierdo del hijo derecho
         if (this->m_pNode->getChild(1)) {
             this->m_pNode = this->m_pNode->getChild(1);
             while (this->m_pNode->getChild(0)) {
@@ -117,6 +116,43 @@ public:
             this->m_pNode = parent;
         }
         return *this;
+    }
+};
+
+template <typename Container>
+class binary_tree_backward_iterator: public general_iterator<Container, binary_tree_backward_iterator<Container>>{
+public:
+    typedef typename Container::Node Node;
+    typedef binary_tree_backward_iterator<Container> myself;
+    typedef general_iterator<Container, myself> Parent;
+    // constructors
+    binary_tree_backward_iterator(Container* pContainer, Node* pNode) : Parent(pContainer, pNode){}
+    binary_tree_backward_iterator(const myself& other): Parent(other) {}
+    binary_tree_backward_iterator(myself&& other) :Parent(std::move(other)){}
+
+    myself& operator++(){
+        if (!this->m_pNode) return *this;
+        
+        if (this->m_pNode->getChild(0)){
+            this->m_pNode = this->m_pNode->getChild(0);
+            while (this->m_pNode->getChild(1)){
+                this->m_pNode = this->m_pNode->getChild(1);
+            }
+        }else{
+            Node* pParent = this->m_pNode->getParent();
+            while (pParent && this->m_pNode == pParent->getChild(0)){
+                this->m_pNode = pParent;
+                pParent = pParent->getParent();
+            }
+            this->m_pNode = pParent;
+        }
+        return *this;
+    }
+
+    myself operator++(int){
+        myself temp = *this;
+        ++(*this);
+        return temp;
     }
 };
 
@@ -141,20 +177,23 @@ public:
     typedef typename Traits::Node Node;
     typedef typename Traits::CompareFn CompareFn;
     typedef CBinaryTree<Traits> myself;
-    typedef binary_tree_iterator<myself> iterator;
-
-private:
+    typedef binary_tree_forward_iterator<myself> forward_iterator;
+    typedef binary_tree_backward_iterator<myself> backward_iterator;
+//private:
+protected:
     Node* m_pRoot;
     size_t m_size;
     CompareFn Compfn;
-    mutable recursive_mutex m_mutex;
+    //mutable recursive_mutex m_mutex;
+    mutable std::shared_mutex m_mutex;
 public: 
     // Constructor por defecto
     CBinaryTree() : m_pRoot(nullptr), m_size(0) {}
     
     // Copy Constructor
     CBinaryTree(const myself& other) : m_pRoot(nullptr), m_size(0) {
-        lock_guard<recursive_mutex> lock(other.m_mutex);
+        //lock_guard<recursive_mutex> lock(other.m_mutex);
+        std::shared_lock <std::shared_mutex> lock(other.m_mutex);
         if (other.m_pRoot) {
             m_pRoot = copyTree(other.m_pRoot, nullptr);
             m_size = other.m_size;
@@ -162,8 +201,12 @@ public:
     }
     
     // Move Constructor
-    CBinaryTree(myself&& other) : m_pRoot(other.m_pRoot), m_size(other.m_size) {
-        lock_guard<recursive_mutex> lock(other.m_mutex);
+    CBinaryTree(myself&& other) : m_pRoot(nullptr), m_size(0) {
+        //lock_guard<recursive_mutex> lock(other.m_mutex);
+        std::unique_lock<std::shared_mutex> lock(other.m_mutex);
+        m_pRoot = other.m_pRoot;
+        m_size = other.m_size;
+
         other.m_pRoot = nullptr;
         other.m_size = 0;
     }
@@ -171,7 +214,11 @@ public:
     // Operador de asinacion
     myself& operator=(const myself& other) {
         if (this != &other) {
-            scoped_lock lock(m_mutex, other.m_mutex);
+            //scoped_lock lock(m_mutex, other.m_mutex);
+            // Prevenir deadlocks usando std::lock para obtener ambos locks
+            std::unique_lock<std::shared_mutex> my_lock(m_mutex, std::defer_lock);
+            std::shared_lock<std::shared_mutex> other_lock(other.m_mutex, std::defer_lock);
+            std::lock(my_lock, other_lock);
             clear();
             if (other.m_pRoot) {
                 m_pRoot = copyTree(other.m_pRoot, nullptr);
@@ -183,31 +230,70 @@ public:
     
     // Destructor implementado
     virtual ~CBinaryTree() {
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
+        std::unique_lock<std::shared_mutex> lock(m_mutex);
         clear();
     }
     
     void clear() {
-        lock_guard<recursive_mutex> lock(m_mutex);
+        std::unique_lock<std::shared_mutex> lock(m_mutex);
         clearTree(m_pRoot);
         m_pRoot = nullptr;
         m_size = 0;
     }
 
     size_t size() const { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         return m_size; 
     }
     
     bool empty() const { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         return m_size == 0; 
     }
     
     // TODO: insert must receive two paramaters: elem and LinkedValueType value
     virtual void insert(value_type elem, Ref value ) { 
+        std::unique_lock<std::shared_mutex> lock(m_mutex);
         internal_insert(elem, value, nullptr, m_pRoot);  
     }
+
+    // Iterators
+    // forward  ->
+    forward_iterator begin(){
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
+        if(!m_pRoot) return forward_iterator(this, nullptr);
+        // inicio : nodo mas a la izquierda
+        Node* pNode = m_pRoot;
+        while (pNode->getChild(0)){
+            pNode = pNode->getChild(0);
+        }
+        return forward_iterator(this, pNode);
+    }
+
+    forward_iterator end(){
+        return forward_iterator(this, nullptr);
+    }
+
+    //backward
+    backward_iterator rbegin(){
+        
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
+        if (!m_pRoot) return backward_iterator(this, nullptr);
+        // inicio es el nodo + a la derecha
+        Node* pNode = m_pRoot;
+        while (pNode->getChild(1)){
+            pNode = pNode->getChild(1);
+        }
+        return backward_iterator(this, pNode);
+    }
+
+    backward_iterator rend(){
+        return backward_iterator(this, nullptr);
+
+    }
+
 
 protected:
     Node* CreateNode(Node* pParent, value_type elem, Ref ref) { 
@@ -220,7 +306,8 @@ protected:
             return (rpOrigin = CreateNode(pParent, elem, ref));
         }
         bool branch = Compfn(elem, rpOrigin->getDataRef());
-        return internal_insert(elem, ref, rpOrigin, rpOrigin->getChildRef(branch ? 0 : 1));
+        //return internal_insert(elem, ref, rpOrigin, rpOrigin->getChildRef(branch ? 0 : 1));
+        return internal_insert(elem, ref, rpOrigin, (Node*&)rpOrigin->getChildRef(branch ? 0 : 1));
     }
     
     Node* copyTree(Node* src, Node* parent) {
@@ -234,28 +321,33 @@ protected:
     
     void clearTree(Node* pNode) {
         if (!pNode) return;
-        clearTree(pNode->getChild(0));
-        clearTree(pNode->getChild(1));
+        clearTree((Node*)pNode->getChild(0));
+        clearTree((Node*)pNode->getChild(1));
         delete pNode;
     }
 
 public:
     // initial functions
     void inorder(ostream& os) { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         inorder(m_pRoot, os, 0); 
     }
     void postorder(ostream& os) { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         postorder(m_pRoot, os, 0); 
     }
     void preorder(ostream& os) { 
-        lock_guard<recursive_mutex> lock(m_mutex);
+        //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         preorder(m_pRoot, os, 0); 
     }
     void print(ostream& os) { 
-        lock_guard<recursive_mutex> lock(m_mutex);
-        print(m_pRoot, os, 0); 
+        //lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
+        //print(m_pRoot, os, 0); 
+        inorder(os);
     }
     
 
@@ -263,36 +355,36 @@ public:
     // variadic fucntions
     template<typename Function, typename... Args>
     void preorder_variadic(Function func, Args&&... args) {
-        lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         preorder_var(m_pRoot, func, std::forward<Args>(args)...);
     }
     
     template<typename Function, typename... Args>
     void inorder_variadic(Function func, Args&&... args) {
-        lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         inorder_var(m_pRoot, func, std::forward<Args>(args)...);
     }
     
     template<typename Function, typename... Args>
     void postorder_variadic(Function func, Args&&... args) {
-        lock_guard<recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
         postorder_var(m_pRoot, func, std::forward<Args>(args)...);
     }
 
 protected:
     void inorder(Node* pNode, ostream& os, size_t level) {
         if (pNode) {
-            inorder(pNode->getChild(0), os, level + 1);
+            inorder((Node*)pNode->getChild(0), os, level + 1);
             os << " -> " << pNode->getData() << "(" << pNode->getDataRef() <<")";
             //os << " --> " << pNode->getData();
-            inorder(pNode->getChild(1), os, level + 1);
+            inorder((Node*)pNode->getChild(1), os, level + 1);
         }
     }
 
     void postorder(Node* pNode, ostream& os, size_t level) {
         if (pNode) {
-            postorder(pNode->getChild(0), os, level + 1);
-            postorder(pNode->getChild(1), os, level + 1);
+            postorder((Node*)pNode->getChild(0), os, level + 1);
+            postorder((Node*)pNode->getChild(1), os, level + 1);
             //os << " --> " << pNode->getData();
             os << " -> " << pNode->getData() << "(" << pNode->getDataRef() <<")";
         }
@@ -302,20 +394,20 @@ protected:
         if (pNode) {
             //os << " --> " << pNode->getData();
             os << " -> " << pNode->getData() << "(" << pNode->getDataRef() <<")";
-            preorder(pNode->getChild(0), os, level + 1);
-            preorder(pNode->getChild(1), os, level + 1);
+            preorder((Node*)pNode->getChild(0), os, level + 1);
+            preorder((Node*)pNode->getChild(1), os, level + 1);
         }
     }
     
-    void print(Node* pNode, ostream& os, size_t level) {
-        if (pNode) {
-            print(pNode->getChild(1), os, level + 1);
-            os << string(level * 6, ' ') << pNode->getData() 
-               << "(" << (pNode->getParent() ? std::to_string(pNode->getDataRef()) : std::to_string(pNode->getDataRef())+")(Root") 
-               << ")" << endl;
-            print(pNode->getChild(0), os, level + 1);
-        }
-    }
+    // void print(Node* pNode, ostream& os, size_t level) {
+    //     if (pNode) {
+    //         print(pNode->getChild(1), os, level + 1);
+    //         os << string(level * 6, ' ') << pNode->getData() 
+    //            << "(" << (pNode->getParent() ? std::to_string(pNode->getDataRef()) : std::to_string(pNode->getDataRef())+")(Root") 
+    //            << ")" << endl;
+    //         print(pNode->getChild(0), os, level + 1);
+    //     }
+    // }
 
     // variadic
     template<typename Function, typename... Args>
@@ -350,7 +442,8 @@ public:
     // writes only in preorder
     void Write(ostream& os) {
         // preorder by default
-        lock_guard< recursive_mutex> lock(m_mutex);
+        std::shared_lock<std::shared_mutex> lock(m_mutex);
+        //lock_guard< recursive_mutex> lock(m_mutex);
         //os << m_size << " ";
         preorder_variadic([&os](value_type& data) {
             os << data << " ";
@@ -372,7 +465,7 @@ public:
     }
     // reads in preorder/ such as write
     bool ReadFromFile(const string& filename) {
-        std::lock_guard<std::recursive_mutex> lock(m_mutex);
+        //std::lock_guard<std::recursive_mutex> lock(m_mutex);
         
         std::ifstream file(filename);
         if (!file.is_open()) {

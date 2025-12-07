@@ -1,0 +1,101 @@
+
+
+#include <iostream>
+#include <mutex>
+#include <memory>
+#include <fstream>
+#include "types.h"
+#include "binarytree.h"
+
+
+void DemoBinaryTree() {
+    
+    std::cout << "Binary Tree Implementation" <<std::endl;
+    CBinaryTree<BinaryTreeAscTraits<T1>> tree;
+    std::vector< std::pair<T1, Ref> > v1 = {
+        {7, 8}, {5, 9}, {6, 3}, {2, 9}, {10, 2}, {8, 2}
+    };
+    
+    std::cout << "Input values:"<< std::endl;
+    for(auto pr: v1)
+    {
+      std::cout << "{" << pr.first << ", " <<  pr.second << "}  ";
+    }
+    std::cout << "\n\n";
+    for (auto &par : v1)
+        tree.insert(par.first, par.second);
+    //std::cout << tree << std::endl;
+
+    // Copy constructor
+    CBinaryTree<BinaryTreeAscTraits<T1>> tree_copied(tree);
+    std::cout << "Copied as A"<< std::endl;
+    tree_copied.print(cout);
+
+    // Move Constructor
+    CBinaryTree<BinaryTreeAscTraits<T1>> tree_moved(std::move(tree_copied));
+    std::cout << "\nA moved to B ..."<< std::endl;
+    std::cout << "A: " <<tree_copied << std::endl;
+    std::cout << "B: " <<tree_moved << std::endl;
+    
+     // forward iterator print
+    std::cout << "Forward Iterator:" <<std::endl;
+    
+    for(auto it = tree.begin(); it != tree.end(); ++it) {
+        cout << *it << " "; 
+    }
+    std::cout << std::endl;
+    // backward iterator print
+    std::cout << "Backward Iterator:"<< std::endl;
+    for(auto it = tree.rbegin(); it != tree.rend(); ++it) {
+        cout << *it << " ";
+    } 
+    std::cout << std::endl;
+
+    std::cout << "Tree contents Inorder:" << std::endl;
+    tree.inorder(std::cout);
+    std::cout << std::endl;
+
+    std::cout << "Tree contents Preorder:" << std::endl;
+    tree.preorder(std::cout);
+    std::cout << std::endl;
+
+    std::cout << "Tree contents Postorder:" << std::endl;
+    tree.postorder(std::cout);
+    std::cout << std::endl;
+    
+    std::cout << "Tree structure:" << std::endl;
+    tree.print(cout);
+
+    std::cout << "\nWrite Test (preorder)"<< std::endl;
+
+    ofstream file("out_preorder_binarytree.txt");
+    if (!file.is_open()) {
+        cerr << "Error: Cannot open file  for writing" << std::endl;
+        return ;
+    }
+    tree.preorder(file);
+    file << std::endl;
+    file.close();
+    std::cout << "-> file saved"<< std::endl;
+
+    //tree_copied.print(cout);
+
+    // Reat test
+    std::cout << "\nRead Test (preorder)"<< std::endl;
+    
+    CBinaryTree<BinaryTreeAscTraits<int>> read_tree;
+    cout << "\nLoading from file: " << "out_preorder_binarytree.txt" << endl;
+    if (read_tree.ReadFromFile("out_preorder_binarytree.txt")) {
+        cout << "-> Read tree (Preorder):" << endl;
+        read_tree.preorder(cout);
+
+        cout << "-> Read tree (Inorder):" << endl;
+        read_tree.inorder(cout);
+        
+        // Verificar que son iguales
+        cout << "\nVerification:" << endl;
+        cout << "Original size: " << tree.size() << endl;
+        cout << "Loaded size: " << read_tree.size() << endl;
+    }
+    
+}

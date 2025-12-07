@@ -2,52 +2,44 @@
 #include <mutex>
 #include <memory>
 #include <fstream>
-#include "types.h"
 #include "binarytree.h"
 #include "avl.h"
+#include <vector>
+#include "types.h"
+
 #include "foreach.h"
 
 void DemoAVL(){
+    std::cout<<"--- AVL DEMO ---"<< std::endl;
     // values for AVL tree
-    AVLTree<int> tree;
+    CAVLTree<AVLAscTraits<T1, Ref>> tree;
     
     // Insert values
-    std::vector<std::pair<int, int>> values = {
+    std::vector<std::pair<T1, Ref>> values = {
         {10, 1}, {20, 3}, {5, 6}, {15, 10}, {25, 11}, {3, 31}, {7,2}
     };
     
+    std::cout<< "Insertando valores..."<<std::endl;
     for (const auto& par : values) {
-        tree.insert(par.first);
+        tree.insert(par.first, par.second);
     }
     
-    std::cout << "Inorder traversal: ";
-    tree.traverseInorder([](int value) {
-        std::cout << value << " ";
-    });
-    std::cout << std::endl;
+    std::cout << "TRee AVL: inorder print";
+    std::cout << tree<< std::endl;
+    std::cout << "TRee AVL: For";
+    // for(auto it = tree.begin(); it != tree.end(); ++it) {
+    //      cout << *it << " "; 
+    // }
     
-    std::cout << "Using foreach with iterators: ";
-    foreach(tree.begin(), tree.end(), [](int value) {
-        std::cout << value + 1 << " ";
-    });
-    //foreach(tree.begin(), tree.end(), [](int value) {
-    //    std::cout << value +1 << " ";
-    //});
-/*
-    // Recorrido compatible usage:
-    tree.traverseInorder([](auto& value) { std::cout <<value << });
+    // std::cout << "Tree contents Inorder:" << std::endl;
+    // tree.inorder(std::cout);
+    // std::cout << std::endl;
 
-    tree.traversePreorder([](auto& value) { std::cout <<value  << });
+    // std::cout << "Tree contents Preorder:" << std::endl;
+    // tree.preorder(std::cout);
+    // std::cout << std::endl;
 
-    tree.traversePostorder([](auto& value) { std::cout <<value  << });
-
-    // Range search for trips between two values
-    tree.findInRange(minValue, maxValue, [](const auto& trip) {
-        // Process matching trips
-    });
-
-    // File operations
-    tree.writeToFile("trips.dat");
-    tree.readFromFile("trips.dat");
-    */
+    // std::cout << "Tree contents Postorder:" << std::endl;
+    // tree.postorder(std::cout);
+    // std::cout << std::endl;
 }
