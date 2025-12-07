@@ -102,16 +102,16 @@ public:
         
         // Si tiene hijo derecho, ir al mas izquierdo del hijo derecho
         if (this->m_pNode->getChild(1)) {
-            this->m_pNode = this->m_pNode->getChild(1);
+            this->m_pNode = (Node*)this->m_pNode->getChild(1);
             while (this->m_pNode->getChild(0)) {
-                this->m_pNode = this->m_pNode->getChild(0);
+                this->m_pNode = (Node*)this->m_pNode->getChild(0);
             }
         } else {
             // Subir hasta encontrar un padre donde vengamos del hijo izquierdo
-            Node* parent = this->m_pNode->getParent();
+            Node* parent = (Node*)this->m_pNode->getParent();
             while (parent && this->m_pNode == parent->getChild(1)) {
                 this->m_pNode = parent;
-                parent = parent->getParent();
+                parent = (Node*)parent->getParent();
             }
             this->m_pNode = parent;
         }
@@ -264,10 +264,10 @@ public:
     forward_iterator begin(){
         std::shared_lock<std::shared_mutex> lock(m_mutex);
         if(!m_pRoot) return forward_iterator(this, nullptr);
-        // inicio : nodo mas a la izquierda
-        Node* pNode = m_pRoot;
-        while (pNode->getChild(0)){
-            pNode = pNode->getChild(0);
+            // inicio : nodo mas a la izquierda
+            Node* pNode = (Node*)m_pRoot;
+            while (pNode->getChild(0)){
+                pNode = (Node*)pNode->getChild(0);
         }
         return forward_iterator(this, pNode);
     }
@@ -349,8 +349,6 @@ public:
         //print(m_pRoot, os, 0); 
         inorder(os);
     }
-    
-
 
     // variadic fucntions
     template<typename Function, typename... Args>
