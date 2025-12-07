@@ -159,11 +159,11 @@ public:
   };
 
 protected:
-  BTNode m_Root;
-  size_t m_Height;
-  size_t m_Order;
-  size_t m_NumKeys;
-  bool m_Unique;
+  BTNode m_Root;    // nodo raíz del B-tree
+  size_t m_Height;  // altura del B-tree
+  size_t m_Order;   // orden del B-tree
+  size_t m_NumKeys; // número de claves en el B-tree
+  bool m_Unique;    // indica si el B-tree es único
 
   // Concurrencia: mutex recursivo para permitir llamadas anidadas (Write ->
   // preorder)

@@ -5,6 +5,7 @@
 #include <functional>
 #include <iostream>
 #include <mutex>
+#include <ostream>
 #include <stack>
 #include <string>
 #include <vector>
@@ -141,7 +142,9 @@ public:
   using Container = CBinaryTree<Traits>;
   using iterator = binary_tree_iterator<Container>;
 
+  // ====================================================================
   // ITERADORES: forward (izq→der) y backward (der→izq)
+  // ====================================================================
   using forward_iterator = binary_tree_iterator<Container, true>;
   using backward_iterator = binary_tree_iterator<Container, false>;
 
@@ -150,7 +153,9 @@ protected:
   size_t m_size = 0;
   CompareFn Compfn;
 
-  // Concurrency mutex
+  // ====================================================================
+  // CONCURRENCY
+  // ====================================================================
   mutable std::mutex m_mutex;
 
 public:
@@ -178,26 +183,14 @@ protected:
     return internal_insert(elem, ref, rpOrigin, rpOrigin->getChildRef(branch));
   }
 
-  Node *copyNodes(Node *pNode, Node *pParent) {
-    if (!pNode)
-      return nullptr;
-    Node *newNode = CreateNode(pParent, pNode->getData(), pNode->getRef());
-    newNode->setChild(copyNodes(pNode->getChild(0), newNode), 0);
-    newNode->setChild(copyNodes(pNode->getChild(1), newNode), 1);
-    return newNode;
-  }
-
 public:
-  // Constructor por defecto
-  CBinaryTree() : m_pRoot(nullptr), m_size(0) {}
+  // TODO: Selis Luis (Copy Constructor)
+  CBinaryTree(Binary &other);
 
-  // ====================================================================
-  // CONSTRUCTOR COPIA: Copia profunda de los nodos
-  // ====================================================================
-  CBinaryTree(const CBinaryTree &other) {
+  CBinaryTree(Binary &&other) {
     std::scoped_lock lock(m_mutex, other.m_mutex);
-    m_size = other.m_size;
-    m_pRoot = copyNodes(other.m_pRoot, nullptr);
+    m_proot(std::move(other, m_pRoot)), m_size(std::move(other, m_size)),
+        Compfn(std::move(other, Compfn))
   }
 
   // ====================================================================
@@ -208,6 +201,17 @@ public:
     m_pRoot = std::exchange(other.m_pRoot, nullptr);
     m_size = std::exchange(other.m_size, 0);
     Compfn = std::move(other.Compfn);
+  }
+
+  // Operador de asignación
+  myself &operator=(myself &&other) {
+    if (this != &other) {
+      std::scoped_lock lock(m_mutex, other.m_mutex);
+      clear(m_pRoot);
+      m_pRoot = std::exchange(other.m_pRoot, nullptr);
+      m_size = std::exchange(other.m_size, 0);
+    }
+    return *this;
   }
 
   // ====================================================================
@@ -223,14 +227,19 @@ public:
   }
 
   // TODO: Quispe David
-  void inorder_print(ostream &os) { inorder_print(m_pRoot, os, 0); }
+  void print(ostream &os) { print(m_pRoot, 0, os); }
 
-  // TODO: Quispe David
-  void inorder_print(Node *pNode, ostream &os, size_t level) {
+  // TODO: Generalize this function by using iterators and apply any function
+  void print(Node *pNode, size_t level, ostream &os) {
     if (pNode) {
-      inorder_print(pNode->getChild(0), os, level + 1);
-      os << " " << pNode->getData();
-      inorder_print(pNode->getChild(1), os, level + 1);
+      Node *pParent = pNode->getParent();
+
+      print(pNode->getChild(1), level + 1, os);
+
+      os << string('|', level) << pNode->getDataRef() << "("
+         << (pParent ? to_string(pParent->getData()) : "Root") << ")" << endl;
+
+      print(pNode->getChild(0), level + 1, os);
     }
   }
 
@@ -269,102 +278,67 @@ public:
   // ====================================================================
   // VARIADIC inorder
   // ====================================================================
-
-  void inorder(Node *pNode, void (*visit)(value_type &item)) {
-    if (pNode) {
-      inorder(pNode->getChild(0), *visit);
-      (*visit)(pNode->getDataRef());
-      inorder(pNode->getChild(1), *visit);
-    }
-  }
-
   template <typename Function, typename... Args>
-  void inorder(Function func, Args const &...args) {
+  void inorder(Function func, Args &&...args) {
     std::scoped_lock lock(m_mutex);
-    internal_inorder(m_pRoot, 0, func, args...); //: forward
+    internal_inorder(m_pRoot, 0, func,
+                     std::forward<Args>(args)...); // correccion std::forward
   }
 
   template <typename Function, typename... Args>
   void internal_inorder(Node *pNode, size_t level, Function func,
                         Args const &...args) {
     if (pNode) {
-      internal_inorder(pNode->getChild(0), level + 1, func, args...);
+      internal_inorder(pNode->getChild(0), level + 1, func,
+                       std::forward<Args>(args)...);
       func(pNode, level, args...);
-      internal_inorder(pNode->getChild(1), level + 1, func, args...);
+      internal_inorder(pNode->getChild(1), level + 1, func,
+                       std::forward<Args>(args)...);
     }
   }
 
-  // ====================================================================
-  // VARIADIC postorder
-  // ====================================================================
-
+  // Variadic template (See foreach.h)
   template <typename Function, typename... Args>
   void postorder(Function func, Args const &...args) {
-    std::scoped_lock lock(m_mutex);
-    internal_postorder(m_pRoot, 0, func, args...);
+    postorder(m_pRoot, 0, func, std::forward<Args>(args)...);
   }
 
   template <typename Function, typename... Args>
   void postorder(Node *pNode, size_t level, Function func,
                  Args const &...args) {
     if (pNode) {
-      postorder(pNode->getChild(0), level + 1, func, args...);
-      postorder(pNode->getChild(1), level + 1, func, args...);
+      postorder(pNode->getChild(0), level + 1, func,
+                std::forward<Args>(args)...);
+      postorder(pNode->getChild(1), level + 1, func,
+                std::forward<Args>(args)...);
       func(pNode, level);
     }
   }
 
-  template <typename Function, typename... Args>
-  void internal_postorder(Node *pNode, size_t level, Function func,
-                          Args const &...args) {
-    if (pNode) {
-      internal_postorder(pNode->getChild(0), level + 1, func, args...);
-      internal_postorder(pNode->getChild(1), level + 1, func, args...);
-      func(pNode, level, args...);
-    }
-  }
-
-  // ====================================================================
-  // VARIADIC preorder
-  // ====================================================================
-
+  // TODO: Villanueva Richard
   void preorder(ostream &os) { preorder(m_pRoot, os, 0); }
-
+  // TODO: Generalize this function by using iterators and apply any function
+  // Create a new iterator to walk in postorder
+  // TODO: Villanueva Richard
   void preorder(Node *pNode, size_t level, ostream &os) {
+    // foreach(preorderbegin(), preorderend((), fn)
     if (pNode) {
-      os << " " << pNode->getData();
+      os << "-->" << pNode->getDataRef();
       preorder(pNode->getChild(0), level + 1, os);
       preorder(pNode->getChild(1), level + 1, os);
     }
   }
 
-  template <typename Function, typename... Args>
-  void preorder(Function func, Args const &...args) {
-    std::scoped_lock lock(m_mutex);
-    internal_preorder(m_pRoot, 0, func, args...);
-  }
-
-  template <typename Function, typename... Args>
-  void internal_preorder(Node *pNode, size_t level, Function func,
-                         Args const &...args) {
-    if (pNode) {
-      func(pNode, level, args...);
-      internal_preorder(pNode->getChild(0), level + 1, func, args...);
-      internal_preorder(pNode->getChild(1), level + 1, func, args...);
-    }
-  }
-
-  // ====================================================================
-  // PRINT
   // ====================================================================
   // PRINT INORDER
+  // ====================================================================
   void print(ostream &os) {
     inorder(
         [&](Node *pNode, size_t level, ostream &out) {
           Node *pParent = pNode->getParent();
           out << string(level * 3, ' ') << "| " << pNode->getDataRef() << " ("
-              << (pParent ? to_string(pParent->getData()) : "Root") << ")"
-              << endl;
+              << "(" << (pParent ? to_string(pParent->getData()) : "Root")
+              << ")" << endl;
         },
         os);
   }
@@ -382,18 +356,6 @@ public:
       os << string(level, ' ') << pNode->getData() << "("
          << (pParent ? to_string(pParent->getData()) : "Root") << ")" << endl;
       print_original(pNode->getChild(1), level + 1, os);
-    }
-  }
-
-  // ====================================================================
-  // POSTORDER (no variadic)
-  // ====================================================================
-
-  void postorder(Node *pNode, size_t level, ostream &os) {
-    if (pNode) {
-      postorder(pNode->getChild(0), level + 1, os);
-      postorder(pNode->getChild(1), level + 1, os);
-      os << " " << pNode->getData();
     }
   }
 
@@ -425,13 +387,14 @@ public:
   // ====================================================================
   // READ
   // ====================================================================
-
   void Read(istream &is) {
     std::scoped_lock lock(m_mutex);
-    clear();
+    clear(m_pRoot);
+    m_pRoot = nullptr;
+    m_size = 0;
     value_type val;
-    Ref dummy{};
     while (is >> val) {
+      LinkedValueType dummy = nullptr;
       insert(val, dummy);
     }
   }
@@ -445,16 +408,17 @@ public:
 // TODO: Arriola Aldo
 // operator <<
 template <typename Traits>
-ostream &operator<<(ostream &os, CBinaryTree<Traits> &obj) {
-  os << "CBinaryTree with " << obj.size() << " elements:";
-  obj.inorder_print(os);
+ostream &operator<<(ostream &os, CBinaryTree<Traits> &tree) {
+  os << "CBinaryTree with " << tree.size() << " elements:";
+  tree.inorder_print(os);
+  tree.print(os);
   return os;
 }
 
 // TODO: Toledo Oscar
 template <typename Traits>
 istream &operator>>(istream &is, CBinaryTree<Traits> &tree) {
-  tree.Read(is);
+  tree.print(is);
   return is;
 }
 
