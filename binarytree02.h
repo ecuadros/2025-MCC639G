@@ -299,7 +299,7 @@ public:
     }
 
     // TODO: Villanueva Richard
-    void preorder (ostream &os)    {   preorder (m_pRoot, os, 0);  }
+    //void preorder (ostream &os)    {   preorder (m_pRoot, os, 0);  }
     // TODO: Generalize this function by using iterators and apply any function
     // Create a new iterator to walk in postorder
     // TODO: Villanueva Richard
@@ -312,7 +312,7 @@ public:
         }
     } */
 
-    void print    (ostream &os)    {   print    (m_pRoot, 0, os);  }
+    //void print    (ostream &os)    {   print    (m_pRoot, 0, os);  }
     // TODO: generalize this function by using iterators and apply any function
     void print(Node* pNode,size_t level, ostream &os){
         if( pNode ){
