@@ -71,9 +71,12 @@ private:
 
 public:
     CAVLTree(): Base(){}
-    void insert(value_type elem, Ref value) override{
+
+
+    void insert(value_type data, Ref ref) override {
         std::unique_lock<std::shared_mutex> lock(this->m_mutex);
-        this->internal_insert(elem, value, nullptr, (Node*&)this->m_pRoot);
+        //insert AVL
+        this->m_pRoot = internal_insert((Node*)this->m_pRoot, data, ref, nullptr);
     }
 protected:
     int height(Node* N){
@@ -92,33 +95,33 @@ protected:
         return height((Node*)N->getChild(0)) - height((Node*)N->getChild(1));
     }
 
-Node* rightRotate(Node* currentRoot) {
-        Node* newRoot = (Node*)currentRoot->getChild(0);
-        Node* T2 = (Node*)newRoot->getChild(1);
+    Node* rightRotate(Node* currentRoot) {
+            Node* newRoot = (Node*)currentRoot->getChild(0);
+            Node* T2 = (Node*)newRoot->getChild(1);
 
-        // rotate
-        newRoot->setpChild(currentRoot, 1); 
+            // rotate
+            newRoot->setpChild(currentRoot, 1); 
 
-        currentRoot->setpChild(T2, 0);
+            currentRoot->setpChild(T2, 0);
 
-        // update parents
-        if (T2) T2->m_pParent = currentRoot;
-        
-        newRoot->m_pParent = currentRoot->m_pParent; 
-        currentRoot->m_pParent = newRoot;            
+            // update parents
+            if (T2) T2->m_pParent = currentRoot;
+            
+            newRoot->m_pParent = currentRoot->m_pParent; 
+            currentRoot->m_pParent = newRoot;            
 
-        if (newRoot->m_pParent) {
-            if (newRoot->m_pParent->getChild(1) == currentRoot) 
-                newRoot->m_pParent->setpChild(newRoot, 1);
-            else 
-                newRoot->m_pParent->setpChild(newRoot, 0);
+            if (newRoot->m_pParent) {
+                if (newRoot->m_pParent->getChild(1) == currentRoot) 
+                    newRoot->m_pParent->setpChild(newRoot, 1);
+                else 
+                    newRoot->m_pParent->setpChild(newRoot, 0);
+            }
+
+            updateHeight(currentRoot);
+            updateHeight(newRoot);
+
+            return newRoot; 
         }
-
-        updateHeight(currentRoot);
-        updateHeight(newRoot);
-
-        return newRoot; 
-    }
 
     // 
     Node* leftRotate(Node* currentRoot) {
@@ -147,7 +150,44 @@ Node* rightRotate(Node* currentRoot) {
 
         return newRoot;
     }
-
+private:
+    Node* internal_insert(Node* node, value_type data, Ref ref, Node* pParent){
+        if (node == nullptr){
+            return new Node(pParent, data, ref);
+        }
+        CompareFn cmp;
+        if (cmp(data, node->getData())){
+            node->setpChild(internal_insert((Node*)node->getChild(0), data, ref, node), 0);
+        }else if(cmp(node->getData(), data)){
+            node->setpChild(internal_insert((Node*)node->getChild(1),data,ref, node), 1);
+        }else{
+            return node;
+        }
+        updateHeight(node);
+        int balance = getBalance(node);
+        
+        // balance de ramas
+        // left-left
+        if (balance > 1 && cmp(data, ((Node*)node->getChild(0))->getData())){
+            return rightRotate(node);
+        }
+        // right-right
+        if (balance < -1 && cmp( ((Node*)node->getChild(1))->getData(),data)){
+            return leftRotate(node);
+        }
+        // left-right
+        if (balance>1 && cmp(((Node*)node->getChild(0))->getData(), data)){
+            node->setpChild(leftRotate((Node*)node->getChild(1)), 1);
+            return rightRotate(node);
+        }
+        // right-left
+        if(balance <-1 && cmp(data, ((Node*)node->getChild(1))->getData())){
+            node->setpChild(rightRotate((Node*)node->getChild(1)), 1);
+            return leftRotate(node);
+        }
+        // sin cambios
+        return node;
+    }
 };
 
 
