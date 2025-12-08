@@ -1,359 +1,169 @@
 #ifndef __AVL_H__
 #define __AVL_H__
 
-#include <iostream>
-#include <vector>
-#include <thread>
-#include <mutex>
-#include <functional>
-#include <stack>
-#include <algorithm>
-#include <cmath>
-#include <iomanip>
-#include "types.h"
-#include "traits.h"
-
-using namespace std;
+#include "binarytree.h"
 
 template <typename Traits>
-class CAVLNode {
+class CAVLNode : public CBinaryTreeNode<Traits>{
 public:
-    using value_type = typename Traits::value_type;
-    using Node = CAVLNode<Traits>;
-    
-    value_type  m_data;
-    Ref         m_ref;
-    Node*       m_pParent;
-    Node*       m_pLeft;
-    Node*       m_pRight;
-    int         m_balanceFactor;
-    
+  using value_type = typename Traits::T;
+  using Node       = CAVLNode<Traits>;
+protected:
+    int     m_heightNode = 0; // Altura del nodo 
+   
 public:
-    CAVLNode(Node *pParent, value_type data, Ref ref) 
-        : m_data(data), m_ref(ref), m_pParent(pParent), 
-          m_pLeft(nullptr), m_pRight(nullptr), m_balanceFactor(0) {}
-    
-    value_type getData() const { return m_data; }
-    value_type& getDataRef() { return m_data; }
-    Ref getRef() const { return m_ref; }
-    
-    Node* getLeft() const { return m_pLeft; }
-    Node* getRight() const { return m_pRight; }
-    Node* getParent() const { return m_pParent; }
-    
-    void setLeft(Node* node) { m_pLeft = node; }
-    void setRight(Node* node) { m_pRight = node; }
-    void setParent(Node* node) { m_pParent = node; }
-    
-    int getBalanceFactor() const { return m_balanceFactor; }
-    void setBalanceFactor(int bf) { m_balanceFactor = bf; }
+    CAVLNode(Node* pParent, KeyNode data, Ref ref, Node* p0 = nullptr, Node* p1 = nullptr)
+        : CBinaryTreeNode<Traits>(pParent, data, ref, p0, p1),  m_balanceFactor(0){}//enviamos el balance
+
+    int heightNode() {return m_heightNode;}
+    //Factor de equillibrio(FE) = Altura derecha - Altura izquierda; si FE>1 o FE<-1 entonces el arbol esta desbalanceado
+    //FE>1 desbalanceado a la derecha(rotar a la izquierda), FE<-1 desbalanceado a la izquierda(rotar a la derecha), FE=0 balanceado
+    int balancefactor(){
+        int hleft = m_pChild[0] ? m_pChild[0]->heightNode() : -1;
+        int hRight = m_pChild[1] ? m_pChild[1]->heightNode() : -1;
+        return hleft - hRight;
+    }
+    //Debe calcularse primero la altura del nodo ->h= max(hIzq, hDer)+1
+    int currentNodeHeight(){
+        
+        int hleft = m_pChild[0] ? m_pChild[0]->heightNode() : -1;
+        int hRight = m_pChild[1] ? m_pChild[1]->heightNode() : -1;
+        m_heightNode = max(hleft, hRight) + 1;
+    }   
+        
+
+
 };
 
-template <typename T>
-struct AVLAscTraits {
-    using value_type = T;
-    using Node = CAVLNode<AVLAscTraits<T>>;
-    using CompareFn = less<T>;
+template <typename _T>
+struct AVLAscTraits{
+    using  value_type = _T;
+    using  Node       = CAVLNode<T>;
+    using  CompareFn  = less<T>;
 };
 
-template <typename T>
-struct AVLDescTraits {
-    using value_type = T;
-    using Node = CAVLNode<AVLDescTraits<T>>;
-    using CompareFn = greater<T>;
+template <typename _T>
+struct AVLDescTraits{
+    using  value_type = _T;
+    using  Node       = CAVLNode<T>;
+    using  CompareFn  = greater<T>;
 };
 
 template <typename Traits>
-class CAVLTree {
+class CAVLTree : public CBinaryTree<Traits> {
 public:
-    using value_type = typename Traits::value_type;
-    using CompareFn = typename Traits::CompareFn;
-    using Node = typename Traits::Node;
+    using Base       = CBinaryTree<Traits>;
+    using Node       = typename Traits::Node;
+    using value_type = typename Traits::value_type;  
+    using CompareFn  = typename Traits::CompareFn;
+    using Container  = CAVLTree<Traits>;
+    //using iterator   = binary_tree_iterator<Container>;
 
-private:
-    Node* m_pRoot;
-    size_t m_size;
-    CompareFn m_compare;
-    mutable mutex m_mutex;
+protected:
 
-    // Calcular altura de un nodo
-    int height(Node* node) const {
-        if (!node) return 0;
-        return 1 + max(height(node->getLeft()), height(node->getRight()));
+    Node* CreateNode(Node* pParent, value_type elem, Ref ref) {
+        return new Node(pParent, elem, ref);
     }
     
-    // Actualizar factor de balance
-    void updateBalanceFactor(Node* node) {
-        if (node) {
-            int leftHeight = height(node->getLeft());
-            int rightHeight = height(node->getRight());
-            node->setBalanceFactor(leftHeight - rightHeight);
-        }
+    // Additional members for AVL tree balancing can be added here
+    // TODO: modificar la insercion para que mantenga
+    //       el balance del arbo y realice las 
+    //       rotaciones necesarias
+    // TODO 1. insertar
+    //primero arbol avl, recorro con un insert igual al arbol binario, coloco un insert y llamo al insert del arbol binario
+    Node *internal_insert(value_type &elem, Ref ref,
+                          Node* pParent, Node*& rpOrigin) override
+    {
+        if (!rpOrigin) {
+            ++m_size;
+            return (rpOrigin = CreateNode(pParent, elem, ref));
+        }    
+
+        size_t branch = CompareFn(elem, rpOrigin->getDataRef()) ? 0 : 1;
+        return internal_insert(elem, ref, nullptr, rpOrigin, rpOrigin->getChildRef(branch));
+        rpOrigin = balance(rpOrigin);
+        return rpOrigin;
+
     }
-    
-    // Rotaciones AVL
-    Node* rotateRight(Node* y) {
-        Node* x = y->getLeft();
-        if (!x) return y;
-        
-        Node* T2 = x->getRight();
-        
-        // Realizar rotación
-        x->setRight(y);
-        y->setLeft(T2);
-        
-        // Actualizar padres
-        if (T2) T2->setParent(y);
-        x->setParent(y->getParent());
-        y->setParent(x);
-        
-        // Actualizar factores de balance
-        updateBalanceFactor(y);
-        updateBalanceFactor(x);
-        
-        return x;
-    }
-    
-    Node* rotateLeft(Node* x) {
-        Node* y = x->getRight();
-        if (!y) return x;
-        
-        Node* T2 = y->getLeft();
-        
-        // Realizar rotación
-        y->setLeft(x);
-        x->setRight(T2);
-        
-        // Actualizar padres
-        if (T2) T2->setParent(x);
-        y->setParent(x->getParent());
-        x->setParent(y);
-        
-        // Actualizar factores de balance
-        updateBalanceFactor(x);
-        updateBalanceFactor(y);
-        
-        return y;
-    }
-    
-    // Balancear el árbol después de inserción
-    Node* balance(Node* node, value_type elem) {
-        if (!node) return node;
-        
-        updateBalanceFactor(node);
-        int balanceFactor = node->getBalanceFactor();
-        
-        // Caso Left Left
-        if (balanceFactor > 1 && m_compare(elem, node->getLeft()->getData())) {
-            return rotateRight(node);
+    // TODO 2. verificar balance
+     //Factor de equillibrio(FE) = Altura derecha - Altura izquierda; si FE>1 o FE<-1 entonces el arbol esta desbalanceado
+    //FE>1 desbalanceado a la derecha(rotar a la izquierda), FE<-1 desbalanceado a la izquierda(rotar a la derecha), FE=0 balanceado
+    //Debe calcularse primero la altura del nodo ->h= max(hIzq, hDer)+1
+    Node* balance(Node* pNode){
+        if(!pNode) return nullptr;
+        pNode->currentNodeHeight();
+        int bf = pNode->balancefactor();
+
+        //FE>1 rotar a la derecha, FE<-1 rotar a la izquierda, FE=0 balanceado
+        if(bf > 1){
+            Node* left = pNode->getChild(0);
+            if (left && left->balancefactor() >= 0)
+                return rightRotate(pNode);
+            if (left && left->balancefactor() < 0)
+            {
+                pNode->getChildRef(0) = leftRotate(left);
+                return rightRotate(pNode); 
+            }
         }
-        
-        // Caso Right Right
-        if (balanceFactor < -1 && !m_compare(elem, node->getRight()->getData())) {
-            return rotateLeft(node);
+
+        if(bf < -1){
+            Node* right = pNode->getChild(1);
+            if (right && right->balancefactor() <= 0)
+            return leftRotate(pNode);
+            if (right && right->balancefactor() > 0)
+            {
+                pNode->getChildRef(1) = rightRotate(right);
+                return leftRotate(pNode); 
+            }
+            
         }
-        
-        // Caso Left Right
-        if (balanceFactor > 1 && !m_compare(elem, node->getLeft()->getData())) {
-            node->setLeft(rotateLeft(node->getLeft()));
-            return rotateRight(node);
-        }
-        
-        // Caso Right Left
-        if (balanceFactor < -1 && m_compare(elem, node->getRight()->getData())) {
-            node->setRight(rotateRight(node->getRight()));
-            return rotateLeft(node);
-        }
-        
-        return node;
+
+        return pNode;
+
     }
-    
-    // Inserción con balanceo AVL
-    Node* internalInsertAVL(value_type elem, Ref ref, Node*& node, Node* parent) {
-        if (!node) {
-            node = new Node(parent, elem, ref);
-            m_size++;
-            return node;
-        }
-        
-        if (m_compare(elem, node->getData())) {
-            Node* newLeft = internalInsertAVL(elem, ref, node->m_pLeft, node);
-            node->setLeft(newLeft);
-        } else {
-            Node* newRight = internalInsertAVL(elem, ref, node->m_pRight, node);
-            node->setRight(newRight);
-        }
-        
-        return balance(node, elem);
+    // TODO 3. realizar rotaciones si es necesario
+    //Rotación a la derecha
+    Node* rightRotate(Node* ptrR){
+        Node* pNodeL = ptrR->getChild(0);
+        Node* pNodeR= pNodeL->getChild(1);
+
+
+        pNodeL->getChildRef(1) = ptrR;
+        ptrR->getChildRef(0) = pNodeR;
+
+        if(pNodeR) pNodeR->m_pParent = ptrR;
+        pNodeL->m_pParent = ptrRight->m_pParent;
+        ptrR->m_pParent = pNodeL;
+
+        ptrR->currentNodeHeight();
+        pNodeL->currentNodeHeight();
+
+        return pNodeL;
+
     }
-    
-    void clearTree(Node* node) {
-        if (node) {
-            clearTree(node->getLeft());
-            clearTree(node->getRight());
-            delete node;
-        }
+    //Rotación a la izquierda
+    Node* leftRotate(Node* ptrL){
+        Node* pNodeR = ptrL->getChild(1);
+        Node* pNodeL =  pNodeR->getChild(0);
+
+        pNodeR->getChildRef(0) = ptrL;
+        ptrL->getChildRef(1) = pNodeL;
+
+        if(pNodeL) pNodeL->m_pParent = ptrL;
+        pNodeR->m_pParent = ptrL->m_pParent;
+        ptrL->m_pParent = pNodeR;
+
+        ptrL->currentNodeHeight();
+        pNodeR->currentNodeHeight();   
+
+        return pNodeR;
+
     }
-    
-    Node* copyTree(Node* other, Node* parent) {
-        if (!other) return nullptr;
-        
-        Node* newNode = new Node(parent, other->getData(), other->getRef());
-        newNode->setBalanceFactor(other->getBalanceFactor());
-        newNode->setLeft(copyTree(other->getLeft(), newNode));
-        newNode->setRight(copyTree(other->getRight(), newNode));
-        return newNode;
-    }
-    
-    void inorder(Node* node, ostream& os) const {
-        if (node) {
-            inorder(node->getLeft(), os);
-            os << node->getData() << "(" << node->getRef() << ") ";
-            inorder(node->getRight(), os);
-        }
-    }
-    
-    void preorder(Node* node, ostream& os) const {
-        if (node) {
-            os << node->getData() << "(" << node->getRef() << ") ";
-            preorder(node->getLeft(), os);
-            preorder(node->getRight(), os);
-        }
-    }
-    
-    void postorder(Node* node, ostream& os) const {
-        if (node) {
-            postorder(node->getLeft(), os);
-            postorder(node->getRight(), os);
-            os << node->getData() << "(" << node->getRef() << ") ";
-        }
-    }
-    
-    void print(Node* node, ostream& os, size_t level) const {
-        if (node) {
-            print(node->getRight(), os, level + 1);
-            os << string(level * 4, ' ') << node->getData() 
-               << "[" << node->getRef() << "]" 
-               << "(BF:" << node->getBalanceFactor() << ")" << endl;
-            print(node->getLeft(), os, level + 1);
-        }
-    }
-    
-    bool checkBalance(Node* node) const {
-        if (!node) return true;
-        
-        int leftHeight = height(node->getLeft());
-        int rightHeight = height(node->getRight());
-        int balanceFactor = leftHeight - rightHeight;
-        
-        return (abs(balanceFactor) <= 1) && 
-               checkBalance(node->getLeft()) && 
-               checkBalance(node->getRight());
-    }
+
 
 public:
-    CAVLTree() : m_pRoot(nullptr), m_size(0) {}
-    
-    // Constructor de copia
-    CAVLTree(const CAVLTree& other) {
-        lock_guard<mutex> lock(other.m_mutex);
-        m_pRoot = copyTree(other.m_pRoot, nullptr);
-        m_size = other.m_size;
-    }
-    
-    // Operador de asignación
-    CAVLTree& operator=(const CAVLTree& other) {
-        if (this != &other) {
-            lock_guard<mutex> lock1(m_mutex);
-            lock_guard<mutex> lock2(other.m_mutex);
-            clear();
-            m_pRoot = copyTree(other.m_pRoot, nullptr);
-            m_size = other.m_size;
-        }
-        return *this;
-    }
-    
-    // Move constructor
-    CAVLTree(CAVLTree&& other) noexcept {
-        lock_guard<mutex> lock(other.m_mutex);
-        m_pRoot = other.m_pRoot;
-        m_size = other.m_size;
-        other.m_pRoot = nullptr;
-        other.m_size = 0;
-    }
-    
-    // Move assignment
-    CAVLTree& operator=(CAVLTree&& other) noexcept {
-        if (this != &other) {
-            lock_guard<mutex> lock1(m_mutex);
-            lock_guard<mutex> lock2(other.m_mutex);
-            clear();
-            m_pRoot = other.m_pRoot;
-            m_size = other.m_size;
-            other.m_pRoot = nullptr;
-            other.m_size = 0;
-        }
-        return *this;
-    }
-    
-    ~CAVLTree() {
-        clear();
-    }
-    
-    size_t size() const { 
-        lock_guard<mutex> lock(m_mutex);
-        return m_size; 
-    }
-    
-    bool empty() const { 
-        return size() == 0;  
-    }
-    
-    void insert(value_type elem, Ref ref) { 
-        lock_guard<mutex> lock(m_mutex);
-        m_pRoot = internalInsertAVL(elem, ref, m_pRoot, nullptr);
-    }
-    
-    void clear() {
-        lock_guard<mutex> lock(m_mutex);
-        clearTree(m_pRoot);
-        m_pRoot = nullptr;
-        m_size = 0;
-    }
-    
-    void inorder(ostream& os) const {
-        lock_guard<mutex> lock(m_mutex);
-        inorder(m_pRoot, os);
-    }
-    
-    void preorder(ostream& os) const {
-        lock_guard<mutex> lock(m_mutex);
-        preorder(m_pRoot, os);
-    }
-    
-    void postorder(ostream& os) const {
-        lock_guard<mutex> lock(m_mutex);
-        postorder(m_pRoot, os);
-    }
-    
-    void print(ostream& os) const {
-        lock_guard<mutex> lock(m_mutex);
-        print(m_pRoot, os, 0);
-    }
-    
-    // Verificar si el árbol está balanceado
-    bool isBalanced() const {
-        lock_guard<mutex> lock(m_mutex);
-        return checkBalance(m_pRoot);
-    }
+    CAVLTree() : Base() {} // Empty tree
+
 };
-
-template <typename Traits>
-ostream& operator<<(ostream& os, CAVLTree<Traits>& tree) {
-    tree.print(os);
-    return os;
-}
-
-void DemoAVLTree();
 
 #endif // __AVL_H__
