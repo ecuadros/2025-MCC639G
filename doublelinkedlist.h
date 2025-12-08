@@ -3,6 +3,7 @@
 #include <iostream>
 #include <shared_mutex>
 #include <mutex>
+#include <utility>
 #include "types.h"
 #include "traits.h"
 
@@ -119,7 +120,7 @@ public:
     CDoubleLinkedList();
     CDoubleLinkedList(CDoubleLinkedList &other);
 
-    // TODO: Doneppppppppppppppooo55555555555555555555555
+    // TODO: Done
     CDoubleLinkedList(CDoubleLinkedList &&other);
 
     // Destructor seguro
@@ -128,6 +129,7 @@ public:
     void Insert(value_type &elem, Ref ref);
 private:
     void InternalInsert(Node *&rParent, value_type &elem, Ref ref);
+    void internalClear();
     Node *GetRoot()    {    return m_pRoot;     };
 
 public:
@@ -136,7 +138,7 @@ public:
 
     // TODO: verifricar donde debe comenzar apuntando el iterator reverso
     // corregio backward iterator
-    backward_iterator rbegin(){ return backward_iterator(this, m_pRoot); };
+    backward_iterator rbegin(){ return backward_iterator(this, m_pTail); };
     backward_iterator rend()  { return backward_iterator(this, nullptr); } 
 
     friend std::ostream& operator<<(std::ostream &os, CDoubleLinkedList<Traits> &obj){
@@ -164,7 +166,8 @@ public:
 
 template <typename Traits>
 void CDoubleLinkedList<Traits>::Insert(value_type &elem, Ref ref){
-    std::unique_lock lock(m_mutex);
+    //std::unique_lock lock(m_mutex);
+    std::unique_lock<std::shared_mutex> lock(m_mutex);
     InternalInsert(m_pRoot, elem, ref);
 }
 
@@ -197,9 +200,11 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(){}
 //      Hacer loop copiando cada elemento
 template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other) 
-    : m_pRoot(nullptr), m_pTail(nullptr), m_nElem(0), m_fCompare(other.m_fCompare)
+    : m_nElem(0), m_fCompare(other.m_fCompare)
 {
-    std::unique_lock lock(m_mutex);
+    //std::unique_lock lock(m_mutex);
+    std::shared_lock<std::shared_mutex> lock(other.m_mutex);
+    
     if (!other.m_pRoot) { // empty contdition
         return;
     }
@@ -230,16 +235,34 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other)
 template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
     std::unique_lock<std::shared_mutex> lock(other.m_mutex);
-    // cpoia de punteros
-    m_pRoot = other.m_pRoot;
-    m_pTail = other.m_pTail;
-    m_nElem = other.m_nElem;
+    m_pRoot = std::exchange(other.m_pRoot, nullptr);
+    m_pTail = std::exchange(other.m_pTail, nullptr);
+    m_nElem = std::exchange(other.m_nElem, 0);
     m_fCompare = std::move(other.m_fCompare);
-    // clean
-    other.m_pTail = nullptr;
-    other.m_pRoot = nullptr;
-    other.m_nElem = 0;
+    // cpoia de punteros
+    // m_pRoot = other.m_pRoot;
+    // m_pTail = other.m_pTail;
+    // m_nElem = other.m_nElem;
+    // m_fCompare = std::move(other.m_fCompare);
+    // // clean
+    // other.m_pTail = nullptr;
+    // other.m_pRoot = nullptr;
+    // other.m_nElem = 0;
     
+}
+
+// to freememory
+template <typename Traits>
+void CDoubleLinkedList<Traits>::internalClear() {
+    Node *current = m_pRoot;
+    while (current) {
+        Node *next = current->GetNext();
+        delete current;
+        current = next;
+    }
+    m_pRoot = nullptr;
+    m_pTail = nullptr;
+    m_nElem = 0;
 }
 
 // TODO: Implementar y liberar la memoria de cada Node. DONE
@@ -262,7 +285,8 @@ CDoubleLinkedList<Traits>::~CDoubleLinkedList()
 template <typename Traits>
 std::istream &CDoubleLinkedList<Traits>::Read(std::istream &is)
 {
-    //std::unique_lock lock(m_mutex);
+    std::unique_lock lock(m_mutex);
+    internalClear();
     Node *current = m_pRoot;
     while (current) {
         Node *next = current->GetNext();
@@ -308,7 +332,8 @@ std::istream &CDoubleLinkedList<Traits>::Read(std::istream &is)
         }
         
         // Insert value and ref
-        Insert(data, ref);
+        // using internal insert to avoid conflicts between recursives and lock
+        InternalInsert(m_pRoot, data, ref);
         
         // Skip whitespace and check for comma
         is >> std::ws;
