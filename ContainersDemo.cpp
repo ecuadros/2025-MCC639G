@@ -2,9 +2,10 @@
 #include <fstream>
 #include <vector>
 #include <utility> // para std::pair
-
-#include "binarytree02.h"
-#include "foreach02.h"
+#include "linkedlist.h"
+#include "doublelinkedlist.h"
+#include "binarytree.h"
+#include "foreach.h"
 #include "types.h"
 #include "util.h"
 

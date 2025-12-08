@@ -2,10 +2,20 @@
 #define __UTIL_H__
 
 #include <iostream>
+using namespace std;
+
+void DemoUtil();
 
 template <typename T>
-void Print(const T& value) {
-    std::cout << value << " ";
+void intercambio(T &a, T &b){
+    T tmp = a;
+    a = b;
+    b = tmp;
 }
 
-#endif // __UTIL_H__
+template <typename T>
+void Print(T &n) {
+    cout << n << " ";
+}
+
+#endif
