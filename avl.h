@@ -97,15 +97,15 @@ protected:
 
     Node* rightRotate(Node* currentRoot) {
             Node* newRoot = (Node*)currentRoot->getChild(0);
-            Node* T2 = (Node*)newRoot->getChild(1);
+            Node* pivot = (Node*)newRoot->getChild(1);
 
             // rotate
             newRoot->setpChild(currentRoot, 1); 
 
-            currentRoot->setpChild(T2, 0);
+            currentRoot->setpChild(pivot, 0);
 
             // update parents
-            if (T2) T2->m_pParent = currentRoot;
+            if (pivot) pivot->m_pParent = currentRoot;
             
             newRoot->m_pParent = currentRoot->m_pParent; 
             currentRoot->m_pParent = newRoot;            
@@ -126,14 +126,14 @@ protected:
     // 
     Node* leftRotate(Node* currentRoot) {
         Node* newRoot = (Node*)currentRoot->getChild(1);
-        Node* T2 = (Node*)newRoot->getChild(0);
+        Node* pivot = (Node*)newRoot->getChild(0);
 
         // Realizar rotación
         newRoot->setpChild(currentRoot, 0); 
-        currentRoot->setpChild(T2, 1); 
+        currentRoot->setpChild(pivot, 1); 
 
         // Actualizar Padres
-        if (T2) T2->m_pParent = currentRoot;
+        if (pivot) pivot->m_pParent = currentRoot;
 
         newRoot->m_pParent = currentRoot->m_pParent;
         currentRoot->m_pParent = newRoot;
