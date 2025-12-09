@@ -81,7 +81,11 @@ public:
     }
 
     void print(std::ostream &os = std::cout) const {
-        os << *static_cast<const Derived *>(this);
+        os << "{ ";
+        inorder_traversal([&os](const value_type &val) {
+            os << val << " ";
+        });
+        os << "}";
     }
 
     size_t size() const noexcept { return m_size; }

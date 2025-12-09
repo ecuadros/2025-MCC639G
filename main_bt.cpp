@@ -65,6 +65,9 @@ void test_copy_and_move() {
     MyBTree moved_tree = std::move(tree);
     std::cout << "\nMoved tree (from original): " << moved_tree << std::endl;
     std::cout << "Original tree (after move): " << tree << std::endl;
+
+    std::cout << "Print: "<< std::endl;
+    moved_tree.print();
 }
 
 // Helper for concurrency test

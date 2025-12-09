@@ -112,6 +112,14 @@ public:
         postorder_recursive(m_root, visit, std::forward<Args>(args)...);
     }
 
+    void print(std::ostream &os = std::cout) const {
+        os << "{ ";
+        inorder_traversal([&os](const value_type &val) {
+            os << val << " ";
+        });
+        os << "}";
+    }
+
     size_t size() const noexcept { return m_size; }
 
     iterator begin() const { return iterator(m_root); }

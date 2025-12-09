@@ -57,6 +57,9 @@ void test_traversals_and_io() {
     ss >> tree_from_stream;
     std::cout << "\nTree read from stream: " << tree_from_stream << std::endl;
     std::cout << "Tree size (expected 7): " << tree_from_stream.size() << std::endl;
+
+    std::cout << "Print: "<< std::endl;
+    tree_from_stream.print();
 }
 
 void test_copy_and_move() {
